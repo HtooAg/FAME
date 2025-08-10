@@ -16,66 +16,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/register/page.js"
     ],
-    "/login/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/login/page.js"
-    ],
-    "/super-admin/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/super-admin/page.js"
-    ],
-    "/stage-manager/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/stage-manager/page.js"
-    ],
-    "/account-pending/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/account-pending/page.js"
-    ],
-    "/stage-manager/events/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/stage-manager/events/page.js"
-    ],
-    "/stage-manager/events/create/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/stage-manager/events/create/page.js"
-    ],
-    "/stage-manager/events/[eventId]/show-dates/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/stage-manager/events/[eventId]/show-dates/page.js"
-    ],
-    "/stage-manager/events/[eventId]/edit/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/stage-manager/events/[eventId]/edit/page.js"
-    ],
-    "/stage-manager/events/[eventId]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/stage-manager/events/[eventId]/page.js"
-    ],
-    "/stage-manager/profile/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/stage-manager/profile/page.js"
-    ],
-    "/events/[eventId]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/events/[eventId]/page.js"
-    ],
-    "/setup-admin/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/setup-admin/page.js"
-    ],
     "/_not-found/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
