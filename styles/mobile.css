@@ -1,0 +1,97 @@
+/* Mobile-specific optimizations */
+
+/* Ensure minimum touch target size of 44px */
+@media (max-width: 768px) {
+	button,
+	[role="button"],
+	input[type="button"],
+	input[type="submit"],
+	.touch-target {
+		min-height: 44px;
+		min-width: 44px;
+	}
+
+	/* Improve form input touch targets */
+	input,
+	textarea,
+	select {
+		min-height: 44px;
+		font-size: 16px; /* Prevents zoom on iOS */
+	}
+
+	/* Better spacing for mobile */
+	.mobile-spacing {
+		padding: 1rem;
+	}
+
+	/* Prevent horizontal scroll */
+	body {
+		overflow-x: hidden;
+	}
+
+	/* Optimize table scrolling */
+	.table-container {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	/* Better modal sizing on mobile */
+	.modal-content {
+		margin: 1rem;
+		max-height: calc(100vh - 2rem);
+		overflow-y: auto;
+	}
+
+	/* Improve calendar touch targets */
+	.calendar-day {
+		min-height: 40px;
+		min-width: 40px;
+	}
+
+	/* Better card spacing on mobile */
+	.card-mobile {
+		margin: 0.5rem;
+		border-radius: 0.75rem;
+	}
+
+	/* Optimize animation performance */
+	.animate-element {
+		will-change: transform, opacity;
+		transform: translateZ(0);
+	}
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) and (max-width: 1024px) {
+	.tablet-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+	.high-dpi-image {
+		image-rendering: -webkit-optimize-contrast;
+		image-rendering: crisp-edges;
+	}
+}
+
+/* Dark mode mobile optimizations */
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+	.mobile-dark {
+		background-color: #111827;
+		color: #f9fafb;
+	}
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
