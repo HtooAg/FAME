@@ -71,6 +71,11 @@
       "static/chunks/main-app.js",
       "static/chunks/app/events/[eventId]/page.js"
     ],
+    "/setup-admin/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/setup-admin/page.js"
+    ],
     "/_not-found/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",

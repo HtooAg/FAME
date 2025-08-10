@@ -1,11 +1,12 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/login/page": "app/login/page.js",
-  "/stage-manager/events/[eventId]/show-dates/page": "app/stage-manager/events/[eventId]/show-dates/page.js",
-  "/stage-manager/events/page": "app/stage-manager/events/page.js",
   "/stage-manager/events/[eventId]/page": "app/stage-manager/events/[eventId]/page.js",
   "/super-admin/page": "app/super-admin/page.js",
+  "/stage-manager/page": "app/stage-manager/page.js",
+  "/api/auth/logout/route": "app/api/auth/logout/route.js",
+  "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/setup-admin/page": "app/setup-admin/page.js",
   "/api/auth/me/route": "app/api/auth/me/route.js",
-  "/api/events/[eventId]/route": "app/api/events/[eventId]/route.js",
-  "/api/super-admin/stage-managers/route": "app/api/super-admin/stage-managers/route.js"
+  "/api/admin/create-super-admin/route": "app/api/admin/create-super-admin/route.js"
 }
