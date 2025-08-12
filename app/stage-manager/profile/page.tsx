@@ -174,15 +174,7 @@ export default function ProfilePage() {
 										/>
 									</div>
 								</div>
-								<div>
-									<Label htmlFor="userId">User ID</Label>
-									<Input
-										id="userId"
-										value={profileData?.id || ""}
-										disabled
-										className="bg-gray-50 font-mono text-sm"
-									/>
-								</div>
+								
 							</CardContent>
 						</Card>
 
@@ -229,16 +221,7 @@ export default function ProfilePage() {
 										</div>
 									</div>
 								</div>
-								<div>
-									<Label>Subscription End Date</Label>
-									<Input
-										value={formatDate(
-											profileData?.subscriptionEndDate
-										)}
-										disabled
-										className="bg-gray-50"
-									/>
-								</div>
+								
 								{profileData?.eventId && (
 									<div>
 										<Label>Assigned Event ID</Label>

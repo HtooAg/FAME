@@ -1,7 +1,12 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/page": "app/page.js",
+  "/super-admin/page": "app/super-admin/page.js",
+  "/artist-dashboard/[artistId]/page": "app/artist-dashboard/[artistId]/page.js",
+  "/stage-manager/events/page": "app/stage-manager/events/page.js",
+  "/stage-manager/events/[eventId]/page": "app/stage-manager/events/[eventId]/page.js",
+  "/artist-dashboard/page": "app/artist-dashboard/page.js",
   "/api/auth/me/route": "app/api/auth/me/route.js",
-  "/register/page": "app/register/page.js",
-  "/api/auth/register/route": "app/api/auth/register/route.js"
+  "/api/artists/profile/route": "app/api/artists/profile/route.js",
+  "/api/artists/[artistId]/route": "app/api/artists/[artistId]/route.js",
+  "/api/websocket/route": "app/api/websocket/route.js"
 }

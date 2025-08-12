@@ -51,7 +51,7 @@ export async function GET(
 		// Try to read the individual event file
 		const eventFilePath = paths.eventFile(eventId);
 		console.log("Event file path:", eventFilePath);
-		const event = await readJsonFile<Event>(eventFilePath, null);
+		const event = await readJsonFile<Event>(eventFilePath);
 		console.log("Event found:", !!event);
 
 		if (!event) {
@@ -75,11 +75,9 @@ export async function GET(
 			"user.userId:",
 			user.userId
 		);
-		if (
-			event.stageManagerId != user.userId &&
-			event.stageManagerId !== user.userId.toString() &&
-			event.stageManagerId !== parseInt(user.userId)
-		) {
+		const eventSmId = String(event.stageManagerId);
+		const userIdStr = String(user.userId);
+		if (eventSmId !== userIdStr) {
 			console.log("User doesn't have access to this event");
 			return NextResponse.json(
 				{
@@ -147,7 +145,7 @@ export async function DELETE(
 
 		// First, read the event to verify it exists and belongs to the user
 		const eventFilePath = paths.eventFile(eventId);
-		const event = await readJsonFile(eventFilePath, null);
+		const event = await readJsonFile<Event>(eventFilePath);
 
 		if (!event) {
 			return NextResponse.json(
@@ -163,11 +161,9 @@ export async function DELETE(
 		}
 
 		// Check if the event belongs to the current stage manager
-		if (
-			event.stageManagerId != user.userId &&
-			event.stageManagerId !== user.userId.toString() &&
-			event.stageManagerId !== parseInt(user.userId)
-		) {
+		const eventSmId = String(event.stageManagerId);
+		const userIdStr = String(user.userId);
+		if (eventSmId !== userIdStr) {
 			return NextResponse.json(
 				{
 					success: false,
@@ -181,7 +177,10 @@ export async function DELETE(
 		}
 
 		// Remove from events index
-		const eventsIndex = await readJsonFile(paths.eventsIndex, []);
+		const eventsIndex = await readJsonFile<Event[]>(
+			paths.eventsIndex,
+			[] as Event[]
+		);
 		const updatedIndex = eventsIndex.filter((e) => e.id !== eventId);
 		await writeJsonFile(paths.eventsIndex, updatedIndex);
 

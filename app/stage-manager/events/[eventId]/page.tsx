@@ -211,32 +211,19 @@ export default function EventManagementPage() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent className="space-y-4">
-									<div className="bg-gray-50 p-3 rounded-lg">
-										<p className="text-xs text-gray-500 mb-1">
-											Artist Portal Link:
-										</p>
-										<div className="flex items-center justify-between">
-											<code className="text-xs bg-white px-2 py-1 rounded border">
-												https://fame.com/artist-auth/
-												{eventId}
-											</code>
-											<Button
-												size="sm"
-												variant="ghost"
-												onClick={() =>
-													copyLink(
-														`https://fame.com/artist-auth/${eventId}`
-													)
-												}
-											>
-												<Copy className="h-3 w-3" />
-											</Button>
-										</div>
+									<div className="p-2 bg-muted rounded-md text-sm break-all">
+										{typeof window !== "undefined"
+											? `${window.location.origin}/artist-register/${eventId}`
+											: `https://fame.com/artist-register/${eventId}`}
 									</div>
-									<Button className="w-full bg-purple-600 hover:bg-purple-700">
-										<ExternalLink className="h-4 w-4 mr-2" />
-										Manage Artists
-									</Button>
+									<Link
+										href={`/stage-manager/events/${eventId}/artists`}
+									>
+										<Button className="w-full bg-purple-600 hover:bg-purple-700">
+											<ExternalLink className="h-4 w-4 mr-2" />
+											Manage Artists
+										</Button>
+									</Link>
 								</CardContent>
 							</Card>
 						</motion.div>
@@ -260,10 +247,14 @@ export default function EventManagementPage() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
-									<Button className="w-full bg-blue-600 hover:bg-blue-700">
-										<Calendar className="h-4 w-4 mr-2" />
-										Start Rehearsal
-									</Button>
+									<Link
+										href={`/stage-manager/events/${eventId}/rehearsal`}
+									>
+										<Button className="w-full bg-blue-600 hover:bg-blue-700">
+											<Calendar className="h-4 w-4 mr-2" />
+											Start Rehearsal
+										</Button>
+									</Link>
 								</CardContent>
 							</Card>
 						</motion.div>
@@ -287,7 +278,9 @@ export default function EventManagementPage() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
-									<Link href={`/stage-manager`}>
+									<Link
+										href={`/stage-manager/events/${eventId}/performance-order`}
+									>
 										<Button className="w-full bg-pink-600 hover:bg-pink-700">
 											<Settings className="h-4 w-4 mr-2" />
 											Manage Show Order
@@ -317,10 +310,14 @@ export default function EventManagementPage() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
-									<Button className="w-full bg-green-600 hover:bg-green-700">
-										<Music className="h-4 w-4 mr-2" />
-										Open DJ Dashboard
-									</Button>
+									<Link
+										href={`/stage-manager/events/${eventId}/dj`}
+									>
+										<Button className="w-full bg-green-600 hover:bg-green-700">
+											<Music className="h-4 w-4 mr-2" />
+											Open DJ Dashboard
+										</Button>
+									</Link>
 								</CardContent>
 							</Card>
 						</motion.div>
@@ -344,10 +341,14 @@ export default function EventManagementPage() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
-									<Button className="w-full bg-yellow-600 hover:bg-yellow-700">
-										<Users className="h-4 w-4 mr-2" />
-										Open MC Dashboard
-									</Button>
+									<Link
+										href={`/stage-manager/events/${eventId}/mc`}
+									>
+										<Button className="w-full bg-yellow-600 hover:bg-yellow-700">
+											<Users className="h-4 w-4 mr-2" />
+											Open MC Dashboard
+										</Button>
+									</Link>
 								</CardContent>
 							</Card>
 						</motion.div>
@@ -372,10 +373,14 @@ export default function EventManagementPage() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
-									<Button className="w-full bg-red-600 hover:bg-red-700">
-										<ExternalLink className="h-4 w-4 mr-2" />
-										Open Live Board
-									</Button>
+									<Link
+										href={`/stage-manager/events/${eventId}/live-board`}
+									>
+										<Button className="w-full bg-red-600 hover:bg-red-700">
+											<ExternalLink className="h-4 w-4 mr-2" />
+											Open Live Board
+										</Button>
+									</Link>
 								</CardContent>
 							</Card>
 						</motion.div>

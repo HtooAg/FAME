@@ -132,13 +132,7 @@ export default function StageManagerDashboard() {
 						<p className="text-lg text-gray-600">
 							Manage your events and create amazing experiences
 						</p>
-						{/* Debug info */}
-						<p className="text-sm text-gray-500 mt-2">
-							Events loaded: {events.length} | Loading:{" "}
-							{loading ? "Yes" : "No"} | WebSocket:{" "}
-							{isConnected ? "Connected" : "Disconnected"} | User
-							ID: {user?.id}
-						</p>
+						
 					</div>
 				</motion.div>
 

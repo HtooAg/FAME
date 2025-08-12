@@ -1,34 +1,117 @@
-import { NextRequest, NextResponse } from "next/server"
-import { paths, readJsonFile, writeJsonFile, readJsonDirectory } from "@/lib/gcs"
+import { NextRequest, NextResponse } from "next/server";
+import { readFileSync, writeFileSync, existsSync } from "fs";
+import { join } from "path";
 
-export async function GET(_req: NextRequest, { params }: { params: { eventId: string } }) {
-  try {
-    const order = await readJsonFile<string[]>(paths.performanceOrder(params.eventId), [])
-    return NextResponse.json(order)
-  } catch (error) {
-    console.error("Order GET error:", error)
-    return NextResponse.json({ error: "Failed to fetch order" }, { status: 500 })
-  }
+const PERFORMANCE_ORDER_FILE = join(
+	process.cwd(),
+	"data",
+	"performance-orders.json"
+);
+
+interface PerformanceSlot {
+	id: string;
+	eventId: string;
+	artistId: string;
+	artistName: string;
+	style: string;
+	duration: number;
+	order: number;
+	startTime?: string;
+	endTime?: string;
+	notes?: string;
 }
 
-export async function POST(request: NextRequest, { params }: { params: { eventId: string } }) {
-  try {
-    const { eventId } = params
-    const { order } = await request.json() as { order: string[] }
-    if (!Array.isArray(order)) return NextResponse.json({ error: "Invalid order" }, { status: 400 })
+interface PerformanceOrder {
+	eventId: string;
+	showStartTime: string;
+	performanceOrder: PerformanceSlot[];
+	updatedAt: string;
+}
 
-    await writeJsonFile(paths.performanceOrder(eventId), order)
+function getPerformanceOrders(): PerformanceOrder[] {
+	if (!existsSync(PERFORMANCE_ORDER_FILE)) {
+		return [];
+	}
+	try {
+		const data = readFileSync(PERFORMANCE_ORDER_FILE, "utf8");
+		return JSON.parse(data);
+	} catch (error) {
+		console.error("Error reading performance orders file:", error);
+		return [];
+	}
+}
 
-    const artists = await readJsonDirectory<any>(paths.artistsDir(eventId))
-    const lookup = new Map(order.map((id, i) => [id, i + 1]))
-    for (const a of artists) {
-      const po = lookup.get(a.id) || a.performanceOrder || 0
-      await writeJsonFile(paths.artistFile(eventId, a.id), { ...a, performanceOrder: po })
-    }
+function savePerformanceOrders(orders: PerformanceOrder[]) {
+	try {
+		writeFileSync(PERFORMANCE_ORDER_FILE, JSON.stringify(orders, null, 2));
+	} catch (error) {
+		console.error("Error saving performance orders file:", error);
+		throw error;
+	}
+}
 
-    return NextResponse.json({ ok: true })
-  } catch (error) {
-    console.error("Order POST error:", error)
-    return NextResponse.json({ error: "Failed to update order" }, { status: 500 })
-  }
+export async function GET(
+	request: NextRequest,
+	{ params }: { params: { eventId: string } }
+) {
+	try {
+		const eventId = params.eventId;
+		const orders = getPerformanceOrders();
+		const eventOrder = orders.find((o) => o.eventId === eventId);
+
+		return NextResponse.json({
+			performanceOrder: eventOrder?.performanceOrder || [],
+			showStartTime: eventOrder?.showStartTime || "19:00",
+		});
+	} catch (error) {
+		console.error("Error fetching performance order:", error);
+		return NextResponse.json(
+			{ error: "Failed to fetch performance order" },
+			{ status: 500 }
+		);
+	}
+}
+
+export async function POST(
+	request: NextRequest,
+	{ params }: { params: { eventId: string } }
+) {
+	try {
+		const eventId = params.eventId;
+		const { performanceOrder, showStartTime } = await request.json();
+
+		const orders = getPerformanceOrders();
+		const existingOrderIndex = orders.findIndex(
+			(o) => o.eventId === eventId
+		);
+
+		const newOrder: PerformanceOrder = {
+			eventId,
+			showStartTime: showStartTime || "19:00",
+			performanceOrder: performanceOrder.map((slot: any) => ({
+				...slot,
+				eventId,
+			})),
+			updatedAt: new Date().toISOString(),
+		};
+
+		if (existingOrderIndex >= 0) {
+			orders[existingOrderIndex] = newOrder;
+		} else {
+			orders.push(newOrder);
+		}
+
+		savePerformanceOrders(orders);
+
+		return NextResponse.json({
+			message: "Performance order saved successfully",
+			performanceOrder: newOrder,
+		});
+	} catch (error) {
+		console.error("Error saving performance order:", error);
+		return NextResponse.json(
+			{ error: "Failed to save performance order" },
+			{ status: 500 }
+		);
+	}
 }

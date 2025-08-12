@@ -1,0 +1,20 @@
+{
+  "id": 1,
+  "name": "Test Stage Manager",
+  "email": "test@example.com",
+  "password": "$2b$10$TAi9YZhH4HM1//SNO0v63OPXbT31TWSOjIh2CNIZ6vchunkL3AkNm",
+  "role": "stage_manager",
+  "accountStatus": "active",
+  "subscriptionStatus": "trial",
+  "subscriptionEndDate": "2025-12-31",
+  "isActive": true,
+  "eventName": "Test Event",
+  "registeredAt": "2025-08-12T17:07:50.926Z",
+  "metadata": {
+    "ipAddress": "unknown",
+    "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.4768",
+    "createdAt": "2025-08-12T17:07:50.927Z"
+  },
+  "eventId": "test-event-123",
+  "approvedAt": "2025-08-12T17:08:50.768Z"
+}

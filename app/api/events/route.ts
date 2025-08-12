@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Read all events and filter by stage manager
-		const allEvents = await readJsonFile<Event[]>(paths.eventsIndex, []);
+		const allEvents = (await readJsonFile<Event[]>(paths.eventsIndex, [])) ?? [];
 		console.log("All events:", allEvents); // Debug log
 		console.log(
 			"User ID from JWT:",

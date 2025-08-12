@@ -1,0 +1,315 @@
+[
+  {
+    "id": "artist_1704067200000_abc123def",
+    "artistName": "Luna Starlight",
+    "realName": "Sarah Johnson",
+    "email": "luna.starlight@email.com",
+    "phone": "+1 (555) 123-4567",
+    "style": "singer",
+    "performanceDuration": 20,
+    "biography": "Luna Starlight is a soulful singer-songwriter with over 8 years of experience performing at venues across the country. Her unique blend of folk and contemporary pop has captivated audiences from intimate coffee shops to large festival stages. Luna's original compositions draw from personal experiences and universal themes of love, growth, and resilience.",
+    "socialMedia": {
+      "instagram": "@lunastarlight_music",
+      "facebook": "facebook.com/lunastarlightmusic",
+      "youtube": "youtube.com/lunastarlightofficial",
+      "website": "www.lunastarlight.com"
+    },
+    "experience": "8+ years performing at various venues including The Blue Note, Central Park Summer Stage, and Bonnaroo Music Festival. Winner of the 2023 Singer-Songwriter Competition at Nashville Music Week. Regular performer at local venues and has opened for nationally touring acts.",
+    "equipment": "Acoustic guitar, microphone (SM58 preferred), guitar amplifier, keyboard for select songs. Can provide own equipment if needed.",
+    "specialRequirements": "Requires a quiet backstage area for vocal warm-ups 30 minutes before performance. Prefers natural lighting during performance.",
+    "eventId": "event_1704067200000_xyz789abc",
+    "eventName": "Summer Music Festival 2024",
+    "status": "active",
+    "createdAt": "2024-01-01T10:00:00.000Z",
+    "lastLogin": "2024-01-15T14:30:00.000Z",
+    "profileImage": "/api/placeholder/150/150",
+    "musicSample": "/samples/luna_starlight_demo.mp3"
+  },
+  {
+    "id": "artist_1704153600000_def456ghi",
+    "artistName": "DJ Neon Pulse",
+    "realName": "Marcus Chen",
+    "email": "djneonpulse@email.com",
+    "phone": "+1 (555) 234-5678",
+    "style": "musician",
+    "performanceDuration": 30,
+    "biography": "DJ Neon Pulse brings high-energy electronic dance music to every performance. With a background in music production and 6 years of DJ experience, Marcus creates seamless mixes that keep crowds moving. His style blends house, techno, and progressive electronic music with custom remixes and original tracks.",
+    "socialMedia": {
+      "instagram": "@djneonpulse",
+      "facebook": "facebook.com/djneonpulseofficial",
+      "youtube": "youtube.com/djneonpulse",
+      "website": "www.djneonpulse.com"
+    },
+    "experience": "6 years DJing at clubs, festivals, and private events. Resident DJ at Club Velocity for 2 years. Performed at Electric Forest, Ultra Music Festival, and numerous local venues. Producer of 3 original EPs with tracks featured on Spotify playlists.",
+    "equipment": "Professional DJ controller (Pioneer DDJ-SX3), laptop with Serato DJ Pro, wireless microphone, LED lighting setup. Full sound system available if needed.",
+    "specialRequirements": "Requires power outlets near DJ booth, darkened stage area for optimal lighting effects, and space for equipment setup (8x6 feet minimum).",
+    "eventId": "event_1704067200000_xyz789abc",
+    "eventName": "Summer Music Festival 2024",
+    "status": "active",
+    "createdAt": "2024-01-02T15:30:00.000Z",
+    "lastLogin": "2024-01-16T09:15:00.000Z",
+    "profileImage": "/api/placeholder/150/150",
+    "musicSample": "/samples/dj_neon_pulse_mix.mp3"
+  },
+  {
+    "id": "artist_1704240000000_ghi789jkl",
+    "artistName": "Comedy Central Mike",
+    "realName": "Michael Rodriguez",
+    "email": "comedycentral.mike@email.com",
+    "phone": "+1 (555) 345-6789",
+    "style": "comedian",
+    "performanceDuration": 15,
+    "biography": "Comedy Central Mike delivers clean, observational humor that resonates with audiences of all ages. With 5 years in stand-up comedy, Mike's material covers everyday life, technology mishaps, and the quirks of modern society. His energetic stage presence and relatable content make him a crowd favorite.",
+    "socialMedia": {
+      "instagram": "@comedycentralmike",
+      "facebook": "facebook.com/comedycentralmike",
+      "youtube": "youtube.com/comedycentralmike",
+      "website": "www.comedycentralmike.com"
+    },
+    "experience": "5 years performing stand-up comedy at comedy clubs, corporate events, and festivals. Regular performer at The Laugh Track and Comedy Corner. Featured comedian at the Annual Comedy Festival 2023. Has performed over 200 shows with consistently positive audience feedback.",
+    "equipment": "Wireless handheld microphone preferred. No additional equipment needed.",
+    "specialRequirements": "Prefers well-lit stage area, needs microphone check 15 minutes before performance. Requests no food or drink service during set to minimize distractions.",
+    "eventId": "event_1704067200000_xyz789abc",
+    "eventName": "Summer Music Festival 2024",
+    "status": "active",
+    "createdAt": "2024-01-03T11:45:00.000Z",
+    "profileImage": "/api/placeholder/150/150"
+  },
+  {
+    "id": "artist_1704326400000_jkl012mno",
+    "artistName": "Rhythm & Flow Dance Crew",
+    "realName": "Ashley Thompson",
+    "email": "rhythmflow.crew@email.com",
+    "phone": "+1 (555) 456-7890",
+    "style": "dancer",
+    "performanceDuration": 25,
+    "biography": "Rhythm & Flow Dance Crew is a dynamic 6-member dance troupe specializing in contemporary hip-hop and street dance styles. Led by choreographer Ashley Thompson, the crew has been performing together for 4 years, bringing high-energy routines that blend technical skill with creative storytelling through movement.",
+    "socialMedia": {
+      "instagram": "@rhythmflowcrew",
+      "facebook": "facebook.com/rhythmflowdancecrew",
+      "youtube": "youtube.com/rhythmflowcrew",
+      "website": "www.rhythmflowcrew.com"
+    },
+    "experience": "4 years as a crew performing at dance competitions, festivals, and corporate events. Winners of the Regional Dance Battle Championship 2023. Featured performers at the City Arts Festival for 2 consecutive years. Individual members have 6-12 years of dance training.",
+    "equipment": "Portable sound system with Bluetooth connectivity, wireless microphones for announcements. Crew provides own costumes and props.",
+    "specialRequirements": "Requires minimum 20x20 feet performance space with smooth, non-slip flooring. Access to changing area for costume changes. Prefers elevated stage or platform for better audience visibility.",
+    "eventId": "event_1704067200000_xyz789abc",
+    "eventName": "Summer Music Festival 2024",
+    "status": "active",
+    "createdAt": "2024-01-04T16:20:00.000Z",
+    "lastLogin": "2024-01-14T12:00:00.000Z",
+    "profileImage": "/api/placeholder/150/150",
+    "musicSample": "/samples/rhythm_flow_performance.mp4"
+  },
+  {
+    "id": "artist_1704412800000_mno345pqr",
+    "artistName": "The Mystic Poet",
+    "realName": "Jordan Williams",
+    "email": "themysticpoet@email.com",
+    "phone": "+1 (555) 567-8901",
+    "style": "poet",
+    "performanceDuration": 12,
+    "biography": "The Mystic Poet weaves words into powerful spoken word performances that explore themes of identity, social justice, and human connection. With 7 years of experience in slam poetry and spoken word, Jordan's performances are both thought-provoking and emotionally resonant, often leaving audiences moved and inspired.",
+    "socialMedia": {
+      "instagram": "@themysticpoet",
+      "facebook": "facebook.com/themysticpoet",
+      "youtube": "youtube.com/themysticpoetofficial",
+      "website": "www.themysticpoet.com"
+    },
+    "experience": "7 years performing spoken word poetry at venues, universities, and poetry slams. Winner of the National Poetry Slam 2022. Published poet with works featured in literary magazines. Regular performer at The Poetry Lounge and has been featured at TEDx events.",
+    "equipment": "Wireless handheld microphone, music stand or podium for notes (optional). May incorporate background music for select pieces.",
+    "specialRequirements": "Prefers intimate lighting setup, quiet environment during performance. Requests water available on stage. May need brief sound check for microphone levels.",
+    "eventId": "event_1704067200000_xyz789abc",
+    "eventName": "Summer Music Festival 2024",
+    "status": "active",
+    "createdAt": "2024-01-05T09:10:00.000Z",
+    "lastLogin": "2024-01-17T18:45:00.000Z",
+    "profileImage": "/api/placeholder/150/150"
+  },
+  {
+    "id": "artist_1704499200000_pqr678stu",
+    "artistName": "Magic Mike Illusions",
+    "realName": "Michael Anderson",
+    "email": "magicmike.illusions@email.com",
+    "phone": "+1 (555) 678-9012",
+    "style": "magician",
+    "performanceDuration": 18,
+    "biography": "Magic Mike Illusions brings wonder and amazement to audiences with a blend of classic magic tricks and modern illusions. With 10 years of professional magic experience, Mike specializes in close-up magic, mentalism, and stage illusions that engage and mystify audiences of all ages.",
+    "socialMedia": {
+      "instagram": "@magicmikeillusions",
+      "facebook": "facebook.com/magicmikeillusions",
+      "youtube": "youtube.com/magicmikeillusions",
+      "website": "www.magicmikeillusions.com"
+    },
+    "experience": "10 years performing professional magic at corporate events, birthday parties, theaters, and festivals. Member of the International Brotherhood of Magicians. Featured performer at the Annual Magic Convention for 3 years. Has performed over 500 shows with 5-star reviews.",
+    "equipment": "Complete magic apparatus including tables, props, and illusion equipment. Wireless microphone for audience interaction. May require assistant from audience for select tricks.",
+    "specialRequirements": "Requires 10x10 feet minimum performance space, table for props, good lighting for visibility of tricks. Prefers to perform on elevated stage or platform. Needs secure area for equipment setup and storage.",
+    "eventId": "event_1704067200000_xyz789abc",
+    "eventName": "Summer Music Festival 2024",
+    "status": "active",
+    "createdAt": "2024-01-06T13:55:00.000Z",
+    "profileImage": "/api/placeholder/150/150"
+  },
+  {
+    "id": "artist_1754883198012_ni7rkj0vb",
+    "eventId": "070f7b7f-842c-409e-8173-e60674a59af5",
+    "status": "active",
+    "createdAt": "2025-08-11T03:33:18.012Z",
+    "artistName": "Abudhabi",
+    "realName": "Htoo Htoo",
+    "email": "test@gmail.com",
+    "phone": "+971 522 116 024",
+    "style": "Rock",
+    "performanceType": "duo",
+    "performanceDuration": 5,
+    "biography": "I'm an artist.",
+    "experience": "",
+    "equipment": "lorem this is sample",
+    "specialRequirements": "I'm Good.",
+    "costumeColor": "red",
+    "customCostumeColor": "",
+    "lightColorSingle": "green",
+    "lightColorTwo": "amber",
+    "lightColorThree": "purple",
+    "lightRequests": "Lorem",
+    "stagePositionStart": "upstage",
+    "stagePositionEnd": "downstage-right",
+    "customStagePosition": "",
+    "socialMedia": {
+      "instagram": "https://www.instagram.com/bunny_ivy499",
+      "facebook": "https://www.facebook.com/chit.pyae.781469",
+      "youtube": "https://youtube.com",
+      "tiktok": "https://tiktok.com",
+      "website": "https://www.chitpyaesone.net"
+    },
+    "mcNotes": "This is sample text.",
+    "stageManagerNotes": "Hello How are you?",
+    "showLink": "https://www.chitpyaesone.net",
+    "musicTracks": [
+      {
+        "song_title": "Test",
+        "duration": 67,
+        "notes": "This is a sample test",
+        "is_main_track": true,
+        "tempo": "medium",
+        "file_url": "blob:http://localhost:3000/7fd514fa-4aee-4906-bf74-9aff1c54ed97"
+      }
+    ],
+    "galleryFiles": [
+      {
+        "url": "blob:http://localhost:3000/3fa7976b-070e-473d-9d08-8380df806809",
+        "type": "video",
+        "name": "Happy Birthday.mp4"
+      }
+    ],
+    "eventName": "Spring Boot"
+  },
+  {
+    "id": "artist_1754884131838_bl8gq16kq",
+    "eventId": "365d98ae-6a03-4c7e-9b92-326fda5c30a6",
+    "status": "active",
+    "createdAt": "2025-08-11T03:48:51.838Z",
+    "artistName": "EDM",
+    "realName": "Eric",
+    "email": "ericlaltaevents@gmail.com",
+    "phone": "+971 522 116 024",
+    "style": "Rock",
+    "performanceType": "duo",
+    "performanceDuration": 5,
+    "biography": "This is an edm event.",
+    "experience": "",
+    "equipment": "This is an edm event position.",
+    "specialRequirements": "This is an edm event.",
+    "costumeColor": "gold",
+    "customCostumeColor": "",
+    "lightColorSingle": "cyan",
+    "lightColorTwo": "warm-white",
+    "lightColorThree": "lavender",
+    "lightRequests": "This is an edm event color.",
+    "stagePositionStart": "center",
+    "stagePositionEnd": "downstage-right",
+    "customStagePosition": "",
+    "socialMedia": {
+      "instagram": "https://www.htooaung.com",
+      "facebook": "https://www.htooaung.com",
+      "youtube": "https://www.htooaung.com",
+      "tiktok": "https://www.htooaung.com",
+      "website": "https://www.htooaung.com"
+    },
+    "mcNotes": "This is an edm event.",
+    "stageManagerNotes": "This is an edm event.",
+    "showLink": "https://www.htooaung.com",
+    "musicTracks": [
+      {
+        "song_title": "EDM-Song",
+        "duration": 2,
+        "notes": "This is an edm event song.",
+        "is_main_track": true,
+        "tempo": "slow",
+        "file_url": "blob:http://localhost:3000/a9fb35f5-e608-4d5c-bbf0-948b318b5c3b"
+      }
+    ],
+    "galleryFiles": [
+      {
+        "url": "blob:http://localhost:3000/b3afe106-cf2c-414d-a4eb-90d432798a65",
+        "type": "video",
+        "name": "hair1.mp4"
+      }
+    ],
+    "eventName": "EDM Festival"
+  },
+  {
+    "id": "artist_1755011489205_xswjcvfdv",
+    "eventId": "01bf1015-f94b-4944-9d10-470ebd69778e",
+    "status": "active",
+    "createdAt": "2025-08-12T15:11:29.205Z",
+    "artistName": "Water Festival Stage",
+    "realName": "John Wick (Htoo Aung Wai)",
+    "email": "john@gmail.com",
+    "phone": "052 211 6024",
+    "style": "Death Metal",
+    "performanceType": "other",
+    "performanceDuration": 5,
+    "biography": "I like Death Metal.",
+    "experience": "",
+    "equipment": "kfujtfrt",
+    "specialRequirements": "fxzer",
+    "costumeColor": "red",
+    "customCostumeColor": "",
+    "lightColorSingle": "blue",
+    "lightColorTwo": "magenta",
+    "lightColorThree": "amber",
+    "lightRequests": "fghfxhfx",
+    "stagePositionStart": "downstage-left",
+    "stagePositionEnd": "left",
+    "customStagePosition": "",
+    "socialMedia": {
+      "instagram": "https://www.officeolympics.io",
+      "facebook": "https://www.officeolympics.io",
+      "youtube": "https://www.officeolympics.io",
+      "tiktok": "https://www.officeolympics.io",
+      "website": "https://www.officeolympics.io"
+    },
+    "mcNotes": "hgnxd",
+    "stageManagerNotes": "szdghg",
+    "showLink": "https://www.officeolympics.io",
+    "musicTracks": [
+      {
+        "song_title": "Metal",
+        "duration": 2,
+        "notes": "No one",
+        "is_main_track": true,
+        "tempo": "medium",
+        "file_url": "blob:http://localhost:3000/ccdd462d-16ba-4f72-9a3b-95af2cf6de3f"
+      }
+    ],
+    "galleryFiles": [
+      {
+        "url": "blob:http://localhost:3000/59762368-f02c-48ee-85e1-c210966dc1e8",
+        "type": "video",
+        "name": "Babe.mp4"
+      }
+    ],
+    "eventName": "EDM Festival"
+  }
+]

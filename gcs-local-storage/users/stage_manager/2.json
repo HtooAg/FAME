@@ -1,0 +1,20 @@
+{
+  "id": 2,
+  "name": "Ko Ko",
+  "email": "koko@gmail.com",
+  "password": "$2b$10$ImW4PaKzlsTjCWDWHxHckeHmfk0adfXmf8tMq8/Th8ujU7e0HXlom",
+  "role": "stage_manager",
+  "accountStatus": "active",
+  "subscriptionStatus": "trial",
+  "subscriptionEndDate": "2025-12-31",
+  "isActive": true,
+  "eventName": "",
+  "registeredAt": "2025-08-12T17:21:58.941Z",
+  "metadata": {
+    "ipAddress": "unknown",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    "createdAt": "2025-08-12T17:21:58.941Z"
+  },
+  "eventId": "",
+  "approvedAt": "2025-08-12T17:24:41.817Z"
+}

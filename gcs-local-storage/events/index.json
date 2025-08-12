@@ -1,0 +1,31 @@
+[
+  {
+    "id": "d0916d8b-4ec0-49ef-8bd2-c45bdf65e29a",
+    "name": "Test Event",
+    "venueName": "Test Venue",
+    "startDate": "2025-08-15T10:00:00.000Z",
+    "endDate": "2025-08-16T22:00:00.000Z",
+    "description": "A test event for validation",
+    "stageManagerId": 1,
+    "showDates": [],
+    "status": "draft",
+    "createdAt": "2025-08-12T17:09:11.114Z",
+    "updatedAt": "2025-08-12T17:09:11.114Z"
+  },
+  {
+    "id": "a467cb12-a276-45d4-b842-2ea87a658a2f",
+    "name": "Bachelor of English",
+    "venueName": "training 2025",
+    "startDate": "2025-08-24T20:00:00.000Z",
+    "endDate": "2025-08-26T20:00:00.000Z",
+    "description": "gbs",
+    "stageManagerId": 2,
+    "showDates": [
+      "2025-08-25T20:00:00.000Z",
+      "2025-08-26T20:00:00.000Z"
+    ],
+    "status": "draft",
+    "createdAt": "2025-08-12T17:26:36.401Z",
+    "updatedAt": "2025-08-12T17:26:46.896Z"
+  }
+]

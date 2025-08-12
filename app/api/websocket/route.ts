@@ -38,7 +38,9 @@ function initWebSocketServer() {
 
 		// Attempt cookie-based authentication immediately on connect
 		try {
-			const cookieHeader = request.headers["cookie"] as string | undefined;
+			const cookieHeader = request.headers["cookie"] as
+				| string
+				| undefined;
 			if (cookieHeader) {
 				const cookies = Object.fromEntries(
 					cookieHeader.split("; ").map((c) => {
@@ -50,7 +52,11 @@ function initWebSocketServer() {
 				const token = cookies["auth-token"];
 				if (token) {
 					const user = verifyToken(token);
-					if (user && (user.role === "stage_manager" || user.role === "super_admin")) {
+					if (
+						user &&
+						(user.role === "stage_manager" ||
+							user.role === "super_admin")
+					) {
 						authenticatedConnections.set(ws, user);
 						ws.send(
 							JSON.stringify({
@@ -79,7 +85,11 @@ function initWebSocketServer() {
 
 				if (data.type === "authenticate") {
 					const user = verifyToken(data.token);
-					if (user && (user.role === "stage_manager" || user.role === "super_admin")) {
+					if (
+						user &&
+						(user.role === "stage_manager" ||
+							user.role === "super_admin")
+					) {
 						authenticatedConnections.set(ws, user);
 						ws.send(
 							JSON.stringify({
@@ -135,6 +145,19 @@ function initWebSocketServer() {
 async function sendEventsToUser(ws: any, user: any) {
 	try {
 		const allEvents = await readJsonFile<Event[]>(paths.eventsIndex, []);
+
+		// Handle case where allEvents might be null
+		if (!allEvents) {
+			ws.send(
+				JSON.stringify({
+					type: "events_update",
+					data: [],
+					timestamp: new Date().toISOString(),
+				})
+			);
+			return;
+		}
+
 		const userEvents = allEvents.filter((event: Event) => {
 			const eventSM = String((event as any).stageManagerId);
 			const userIdStr = String((user as any).userId);
@@ -165,11 +188,17 @@ export async function broadcastEventsUpdate() {
 }
 
 // Broadcast a user account status update to a specific user (e.g., stage manager)
-export async function broadcastUserStatusUpdate(targetUserId: string, payload: { status: string; message?: string; [k: string]: any }) {
+export async function broadcastUserStatusUpdate(
+	targetUserId: string,
+	payload: { status: string; message?: string; [k: string]: any }
+) {
 	if (!wss) return;
 	for (const [ws, user] of authenticatedConnections.entries()) {
 		const u = user as any;
-		if (ws.readyState === ws.OPEN && String(u?.userId) === String(targetUserId)) {
+		if (
+			ws.readyState === ws.OPEN &&
+			String(u?.userId) === String(targetUserId)
+		) {
 			try {
 				ws.send(
 					JSON.stringify({

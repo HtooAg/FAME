@@ -1,0 +1,29 @@
+[
+  {
+    "eventId": "365d98ae-6a03-4c7e-9b92-326fda5c30a6",
+    "isLive": false,
+    "performanceOrder": [
+      {
+        "id": "slot_1754884326988",
+        "artistId": "artist_1754884131838_bl8gq16kq",
+        "artistName": "EDM",
+        "style": "Rock",
+        "duration": 5,
+        "order": 1,
+        "startTime": "19:00",
+        "endTime": "19:10",
+        "eventId": "365d98ae-6a03-4c7e-9b92-326fda5c30a6",
+        "status": "completed",
+        "actualEndTime": "2025-08-11T03:54:13.449Z"
+      }
+    ],
+    "systemStatus": {
+      "audio": "good",
+      "lighting": "good",
+      "stage": "clear",
+      "microphones": 4,
+      "activeMics": 0
+    },
+    "updatedAt": "2025-08-11T03:54:13.558Z"
+  }
+]
