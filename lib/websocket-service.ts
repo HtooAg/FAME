@@ -3,6 +3,11 @@ export interface NotificationMessage {
 	id: string;
 	type:
 		| "artist_registered"
+		| "artist_assigned"
+		| "artist_unassigned"
+		| "artist_deleted"
+		| "artist_status_changed"
+		| "artist_media_updated"
 		| "status_updated"
 		| "profile_updated"
 		| "event_created"
@@ -222,6 +227,205 @@ export class WebSocketService {
 	}
 
 	/**
+	 * Create notification for artist assignment to performance date
+	 */
+	static notifyArtistAssignment(artistData: any, performanceDate: string) {
+		const notification: NotificationMessage = {
+			id: `artist_assigned_${Date.now()}`,
+			type: "artist_assigned",
+			title: "Artist Assigned to Performance",
+			message: `${
+				artistData.artistName || artistData.artist_name
+			} has been assigned to perform on ${new Date(
+				performanceDate
+			).toLocaleDateString()}`,
+			data: {
+				artistId: artistData.id,
+				artistName: artistData.artistName || artistData.artist_name,
+				performanceDate,
+				eventId: artistData.eventId,
+			},
+			timestamp: new Date().toISOString(),
+			recipients: ["super-admin", "stage-manager", "artist"],
+			eventId: artistData.eventId,
+			artistId: artistData.id,
+		};
+
+		this.sendNotification(notification);
+	}
+
+	/**
+	 * Create notification for artist unassignment from performance date
+	 */
+	static notifyArtistUnassignment(artistData: any) {
+		const notification: NotificationMessage = {
+			id: `artist_unassigned_${Date.now()}`,
+			type: "artist_unassigned",
+			title: "Artist Unassigned from Performance",
+			message: `${
+				artistData.artistName || artistData.artist_name
+			} has been moved back to submitted applications`,
+			data: {
+				artistId: artistData.id,
+				artistName: artistData.artistName || artistData.artist_name,
+				eventId: artistData.eventId,
+			},
+			timestamp: new Date().toISOString(),
+			recipients: ["super-admin", "stage-manager", "artist"],
+			eventId: artistData.eventId,
+			artistId: artistData.id,
+		};
+
+		this.sendNotification(notification);
+	}
+
+	/**
+	 * Create notification for artist deletion
+	 */
+	static notifyArtistDeletion(artistData: any) {
+		const notification: NotificationMessage = {
+			id: `artist_deleted_${Date.now()}`,
+			type: "artist_deleted",
+			title: "Artist Profile Deleted",
+			message: `${
+				artistData.artistName || artistData.artist_name
+			}'s profile has been removed`,
+			data: {
+				artistId: artistData.id,
+				artistName: artistData.artistName || artistData.artist_name,
+				eventId: artistData.eventId,
+			},
+			timestamp: new Date().toISOString(),
+			recipients: ["super-admin", "stage-manager"],
+			eventId: artistData.eventId,
+			artistId: artistData.id,
+		};
+
+		this.sendNotification(notification);
+	}
+
+	/**
+	 * Create notification for artist status change
+	 */
+	static notifyArtistStatusChange(artistData: any, oldStatus?: string) {
+		const notification: NotificationMessage = {
+			id: `artist_status_${Date.now()}`,
+			type: "artist_status_changed",
+			title: "Artist Status Updated",
+			message: oldStatus
+				? `${
+						artistData.artistName || artistData.artist_name
+				  }'s status changed from ${oldStatus} to ${artistData.status}`
+				: `${
+						artistData.artistName || artistData.artist_name
+				  }'s status updated to ${artistData.status}`,
+			data: {
+				artistId: artistData.id,
+				artistName: artistData.artistName || artistData.artist_name,
+				status: artistData.status,
+				oldStatus,
+				eventId: artistData.eventId,
+			},
+			timestamp: new Date().toISOString(),
+			recipients: ["super-admin", "stage-manager", "artist"],
+			eventId: artistData.eventId,
+			artistId: artistData.id,
+		};
+
+		this.sendNotification(notification);
+	}
+
+	/**
+	 * Create notification for artist media update
+	 */
+	static notifyArtistMediaUpdate(
+		artistData: any,
+		mediaType: "music" | "gallery"
+	) {
+		const notification: NotificationMessage = {
+			id: `artist_media_${Date.now()}`,
+			type: "artist_media_updated",
+			title: "Artist Media Updated",
+			message: `${
+				artistData.artistName || artistData.artist_name
+			} has updated their ${mediaType} files`,
+			data: {
+				artistId: artistData.id,
+				artistName: artistData.artistName || artistData.artist_name,
+				mediaType,
+				eventId: artistData.eventId,
+			},
+			timestamp: new Date().toISOString(),
+			recipients: ["super-admin", "stage-manager"],
+			eventId: artistData.eventId,
+			artistId: artistData.id,
+		};
+
+		this.sendNotification(notification);
+	}
+
+	/**
+	 * Send notification to specific user by ID
+	 */
+	static sendNotificationToUser(
+		userId: string,
+		notification: NotificationMessage
+	) {
+		this.connections.forEach((ws, connectionId) => {
+			// Assuming connectionId contains userId information
+			if (
+				connectionId.includes(userId) &&
+				ws.readyState === WebSocket.OPEN
+			) {
+				try {
+					ws.send(JSON.stringify(notification));
+					console.log(
+						`Notification sent to user ${userId}: ${notification.title}`
+					);
+				} catch (error) {
+					console.error(
+						`Error sending notification to user ${userId}:`,
+						error
+					);
+					this.removeConnection(connectionId);
+				}
+			}
+		});
+	}
+
+	/**
+	 * Send notification to all users in a specific event
+	 */
+	static sendNotificationToEvent(
+		eventId: string,
+		notification: NotificationMessage
+	) {
+		this.connections.forEach((ws, connectionId) => {
+			// This would need to be enhanced with proper event subscription tracking
+			if (ws.readyState === WebSocket.OPEN) {
+				try {
+					ws.send(
+						JSON.stringify({
+							...notification,
+							eventId,
+						})
+					);
+				} catch (error) {
+					console.error(
+						`Error sending event notification to ${connectionId}:`,
+						error
+					);
+					this.removeConnection(connectionId);
+				}
+			}
+		});
+
+		console.log(
+			`Event notification sent to event ${eventId}: ${notification.title}`
+		);
+	}
+
+	/**
 	 * Get connection count
 	 */
 	static getConnectionCount(): number {
@@ -237,6 +441,17 @@ export class WebSocketService {
 			if (userRole === role) count++;
 		});
 		return count;
+	}
+
+	/**
+	 * Get active connections info
+	 */
+	static getConnectionsInfo(): { connectionId: string; role: string }[] {
+		const connections: { connectionId: string; role: string }[] = [];
+		this.userRoles.forEach((role, connectionId) => {
+			connections.push({ connectionId, role });
+		});
+		return connections;
 	}
 }
 

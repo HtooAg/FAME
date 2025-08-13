@@ -42,6 +42,8 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ArtistProfile, ApiResponse } from "@/lib/types/artist";
+import { AudioPlayer } from "@/components/ui/audio-player";
+import { VideoPlayer, ImageViewer } from "@/components/ui/video-player";
 
 // Types are now imported from @/lib/types/artist
 
@@ -116,7 +118,7 @@ export default function ArtistDashboard() {
 					setError("Artist profile not found");
 				} else if (data.success === false) {
 					setError(
-						data.error.message || "Failed to load artist profile"
+						data.error?.message || "Failed to load artist profile"
 					);
 				} else {
 					setError("Failed to load artist profile");
@@ -469,94 +471,23 @@ export default function ArtistDashboard() {
 										profile.musicTracks.length > 0 ? (
 											profile.musicTracks.map(
 												(track, index) => (
-													<div
+													<AudioPlayer
 														key={index}
-														className="border rounded-lg p-4 space-y-3"
-													>
-														<div className="flex items-center justify-between">
-															<div>
-																<h4 className="font-medium">
-																	{
-																		track.song_title
-																	}
-																</h4>
-																<p className="text-sm text-muted-foreground">
-																	Duration:{" "}
-																	{formatDuration(
-																		track.duration
-																	)}{" "}
-																	• Tempo:{" "}
-																	{
-																		track.tempo
-																	}
-																</p>
-															</div>
-															<div className="flex items-center gap-2">
-																{track.is_main_track && (
-																	<Badge variant="secondary">
-																		Main
-																		Track
-																	</Badge>
-																)}
-																{track.file_url && (
-																	<Button
-																		variant="outline"
-																		size="sm"
-																		onClick={() =>
-																			handlePlayPause(
-																				track.file_url
-																			)
-																		}
-																	>
-																		{currentlyPlaying ===
-																		track.file_url ? (
-																			<Pause className="h-4 w-4" />
-																		) : (
-																			<Play className="h-4 w-4" />
-																		)}
-																	</Button>
-																)}
-															</div>
-														</div>
-														{track.notes && (
-															<div>
-																<p className="text-sm text-muted-foreground">
-																	DJ Notes:
-																</p>
-																<p className="text-sm">
-																	{
-																		track.notes
-																	}
-																</p>
-															</div>
-														)}
-														{track.file_url &&
-															currentlyPlaying ===
-																track.file_url && (
-																<audio
-																	controls
-																	autoPlay
-																	className="w-full"
-																	onEnded={() =>
-																		setCurrentlyPlaying(
-																			null
-																		)
-																	}
-																>
-																	<source
-																		src={
-																			track.file_url
-																		}
-																		type="audio/mpeg"
-																	/>
-																	Your browser
-																	does not
-																	support the
-																	audio
-																	element.
-																</audio>
-															)}
-													</div>
+														track={track}
+														onError={(error) => {
+															console.error(
+																"Audio player error:",
+																error
+															);
+															toast({
+																title: "Audio Error",
+																description:
+																	error,
+																variant:
+																	"destructive",
+															});
+														}}
+													/>
 												)
 											)
 										) : (
@@ -697,10 +628,7 @@ export default function ArtistDashboard() {
 												Starting Position
 											</p>
 											<p className="font-medium capitalize">
-												{profile.stagePositionStart.replace(
-													"-",
-													" "
-												)}
+												{profile.stagePositionStart?.replace("-", " ") ?? "Not specified"}
 											</p>
 										</div>
 										<div>
@@ -708,10 +636,7 @@ export default function ArtistDashboard() {
 												Ending Position
 											</p>
 											<p className="font-medium capitalize">
-												{profile.stagePositionEnd.replace(
-													"-",
-													" "
-												)}
+												{profile.stagePositionEnd?.replace("-", " ") ?? "Not specified"}
 											</p>
 										</div>
 										{profile.customStagePosition && (
@@ -774,38 +699,50 @@ export default function ArtistDashboard() {
 								<CardContent>
 									{profile.galleryFiles &&
 									profile.galleryFiles.length > 0 ? (
-										<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+										<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 											{profile.galleryFiles.map(
 												(file, index) => (
-													<div
-														key={index}
-														className="relative group"
-													>
-														<div className="aspect-square rounded-lg overflow-hidden bg-muted">
-															{file.type ===
-															"image" ? (
-																<img
-																	src={
-																		file.url
-																	}
-																	alt={
-																		file.name
-																	}
-																	className="w-full h-full object-cover"
-																/>
-															) : (
-																<video
-																	src={
-																		file.url
-																	}
-																	className="w-full h-full object-cover"
-																	controls
-																/>
-															)}
-														</div>
-														<p className="text-xs text-muted-foreground mt-1 truncate">
-															{file.name}
-														</p>
+													<div key={index}>
+														{file.type ===
+														"image" ? (
+															<ImageViewer
+																file={file}
+																onError={(
+																	error
+																) => {
+																	console.error(
+																		"Image viewer error:",
+																		error
+																	);
+																	toast({
+																		title: "Image Error",
+																		description:
+																			error,
+																		variant:
+																			"destructive",
+																	});
+																}}
+															/>
+														) : (
+															<VideoPlayer
+																file={file}
+																onError={(
+																	error
+																) => {
+																	console.error(
+																		"Video player error:",
+																		error
+																	);
+																	toast({
+																		title: "Video Error",
+																		description:
+																			error,
+																		variant:
+																			"destructive",
+																	});
+																}}
+															/>
+														)}
 													</div>
 												)
 											)}

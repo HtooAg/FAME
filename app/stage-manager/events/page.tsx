@@ -90,10 +90,8 @@ export default function EventsManagementPage() {
 			});
 
 			if (response.ok) {
-				// Remove the deleted event from the list
-				setEvents(
-					events.filter((event) => event.id !== eventToDelete.id)
-				);
+				// Refresh the events list via WebSocket
+				requestEvents();
 				setDeleteDialogOpen(false);
 				setEventToDelete(null);
 			} else {

@@ -10,7 +10,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, LogOut, Plus, Settings, MapPin } from "lucide-react";
+import { Calendar, LogOut, Plus, Settings, MapPin, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Event } from "@/lib/types/event";
@@ -219,15 +219,8 @@ export default function StageManagerDashboard() {
 														{event.venueName}
 													</CardDescription>
 												</div>
-												<Badge
-													className={getStatusColor(
-														event.status
-													)}
-												>
-													{event.status
-														.charAt(0)
-														.toUpperCase() +
-														event.status.slice(1)}
+												<Badge className={getStatusColor(event.status)}>
+													{event.status.charAt(0).toUpperCase() + event.status.slice(1)}
 												</Badge>
 											</div>
 										</CardHeader>
@@ -235,24 +228,22 @@ export default function StageManagerDashboard() {
 											<div className="space-y-3">
 												<div className="flex items-center text-sm text-gray-600">
 													<Calendar className="h-4 w-4 mr-2" />
-													{formatDate(
-														event.startDate
-													)}{" "}
-													-{" "}
-													{formatDate(event.endDate)}
+													{formatDate(event.startDate)} - {formatDate(event.endDate)}
 												</div>
 
-												<p className="text-sm text-gray-700 line-clamp-2">
-													{event.description}
-												</p>
+												<p className="text-sm text-gray-700 line-clamp-2">{event.description}</p>
 
-												<div className="pt-4">
-													<Link
-														href={`/events/${event.id}`}
-													>
-														<Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-															<Settings className="h-4 w-4 mr-2" />
-															Manage Event
+												<div className="space-y-4">
+													<div className="p-2 bg-muted rounded-md text-sm break-all">
+														{(() => {
+															const origin = typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+															return `${origin}/artist-register/${event.id}`;
+														})()}
+													</div>
+													<Link href={`/stage-manager/events/${event.id}/artists`}>
+														<Button className="w-full bg-purple-600 hover:bg-purple-700">
+															<ExternalLink className="h-4 w-4 mr-2" />
+															Manage Artists
 														</Button>
 													</Link>
 												</div>
@@ -265,7 +256,6 @@ export default function StageManagerDashboard() {
 					</motion.div>
 				)}
 
-				{/* No Events State - Only show when not loading and no events */}
 				{!loading && events.length === 0 && (
 					<motion.div
 						className="text-center py-16"

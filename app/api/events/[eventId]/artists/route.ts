@@ -1,294 +1,257 @@
 import { NextRequest, NextResponse } from "next/server";
-import GCSService from "@/lib/google-cloud-storage";
-import { readJsonFile, writeJsonFile, paths, upsertArrayFile } from "@/lib/gcs";
-import { broadcastEventsUpdate } from "@/app/api/websocket/route";
-import { Event } from "@/lib/types/event";
+import { GCSService } from "@/lib/google-cloud-storage";
+import { broadcastArtistRegistration } from "@/app/api/websocket/route";
 
-interface ArtistData {
-  id: string;
-  artistName: string;
-  realName: string;
-  email: string;
-  phone: string;
-  style: string;
-  performanceDuration: number;
-  biography: string;
-  socialMedia: {
-    instagram: string;
-    facebook: string;
-    youtube: string;
-    website: string;
-  };
-  experience: string;
-  equipment: string;
-  specialRequirements: string;
-  eventId: string;
-  eventName: string;
-  status: "pending" | "approved" | "rejected" | "active" | "inactive";
-  createdAt: string;
-  lastLogin?: string;
-  profileImage?: string;
-  musicSample?: string;
+export interface ApiResponse<T> {
+	success: boolean;
+	data?: T;
+	error?: {
+		message: string;
+		code?: string;
+	};
+	timestamp: string;
 }
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { eventId: string } }
+	request: NextRequest,
+	{ params }: { params: { eventId: string } }
 ) {
-  try {
-    const eventId = params.eventId;
+	try {
+		const { eventId } = params;
 
-    // Read the event to obtain authoritative createdAt for assignDate
-    const event = await readJsonFile<Event>(paths.eventFile(eventId));
-
-    // Get artists index from GCS
-    const artistsIndex = await readJsonFile(
-      paths.artistsIndex(eventId),
-      []
-    );
-
-    // Get full artist data for each artist in the index
-    const eventArtists = await Promise.all(
-      artistsIndex.map(async (artistRef: any) => {
-        const fullArtistData = await GCSService.getArtistData(artistRef.id);
-        return fullArtistData
-          ? {
-              ...fullArtistData,
-              performanceDate: artistRef.performanceDate || null,
-              assignDate: event?.createdAt || null,
-            }
-          : null;
-      })
-    );
-
-    // Filter out null results
-    const validArtists = eventArtists.filter((artist) => artist !== null);
-
-    return NextResponse.json({
-      artists: validArtists,
-      total: validArtists.length,
-      pending: validArtists.filter((a) => a.status === "pending").length,
-      approved: validArtists.filter((a) => a.status === "approved").length,
-      active: validArtists.filter((a) => a.status === "active").length,
-    });
-  } catch (error) {
-    console.error("Error fetching event artists:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch artists from Google Cloud Storage" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { eventId: string } }
-) {
-  try {
-    const eventId = params.eventId;
-    const { artistId, status } = await request.json();
-
-    // Get current artist data from GCS
-    const artistData = await GCSService.getArtistData(artistId);
-
-    if (!artistData || artistData.eventId !== eventId) {
-      return NextResponse.json(
-        { error: "Artist not found for this event" },
-        { status: 404 }
-      );
-    }
-
-    const oldStatus = artistData.status;
-
-    // Update artist status
-    artistData.status = status;
-    artistData.updatedAt = new Date().toISOString();
-
-    // Save updated data to GCS
-    await GCSService.saveArtistData(artistData);
-
-    // Send real-time notification
-    // WebSocketService.notifyStatusUpdate(artistData, oldStatus, status);
-
-    return NextResponse.json({
-      message: "Artist status updated successfully",
-      artist: artistData,
-    });
-  } catch (error) {
-    console.error("Error updating artist status:", error);
-    return NextResponse.json(
-      { error: "Failed to update artist status in Google Cloud Storage" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { eventId: string } }
-) {
-  try {
-    const eventId = params.eventId;
-    const { musicTracks, galleryFiles, ...artistData } = await request.json();
-
-    // Read event to fetch createdAt as assignDate
-    const event = await readJsonFile<Event>(paths.eventFile(eventId));
-
-    // Create new artist with comprehensive data
-    const newArtist: any = {
-      id: `artist_${Date.now()}_${Math.random()
-        .toString(36)
-        .substr(2, 9)}`,
-      eventId,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-      // Map the comprehensive form data to our storage format
-      artistName: artistData.artistName || artistData.artist_name,
-      realName: artistData.realName || artistData.real_name,
-      email: artistData.email,
-      phone: artistData.phone,
-      style: artistData.style,
-      performanceType:
-        artistData.performance_type || artistData.performanceType,
-      performanceDuration:
-        artistData.performanceDuration ||
-        artistData.performance_duration ||
-        15,
-      biography: artistData.biography,
-      experience: artistData.experience || "",
-      equipment: artistData.props_needed || "",
-      specialRequirements: artistData.notes || "",
-      // Technical information
-      costumeColor: artistData.costume_color || artistData.costumeColor,
-      customCostumeColor:
-        artistData.custom_costume_color || artistData.customCostumeColor,
-      lightColorSingle:
-        artistData.light_color_single || artistData.lightColorSingle,
-      lightColorTwo:
-        artistData.light_color_two || artistData.lightColorTwo,
-      lightColorThree:
-        artistData.light_color_three || artistData.lightColorThree,
-      lightRequests:
-        artistData.light_requests || artistData.lightRequests,
-      stagePositionStart:
-        artistData.stage_position_start || artistData.stagePositionStart,
-      stagePositionEnd:
-        artistData.stage_position_end || artistData.stagePositionEnd,
-      customStagePosition:
-        artistData.custom_stage_position || artistData.customStagePosition,
-      // Social media
-      socialMedia: {
-        instagram:
-          artistData.instagram_link ||
-          artistData.socialMedia?.instagram ||
-          "",
-        facebook:
-          artistData.facebook_link ||
-          artistData.socialMedia?.facebook ||
-          "",
-        youtube:
-          artistData.youtube_link ||
-          artistData.socialMedia?.youtube ||
-          "",
-        tiktok:
-          artistData.tiktok_link || artistData.socialMedia?.tiktok || "",
-        website:
-          artistData.website_link || artistData.socialMedia?.website || "",
-      },
-      // Additional notes
-      mcNotes: artistData.mc_notes || artistData.mcNotes || "",
-      stageManagerNotes:
-        artistData.stage_manager_notes || artistData.stageManagerNotes || "",
-      showLink: artistData.show_link || artistData.showLink || "",
-      notes: artistData.notes || "",
-      // Music and media
-      musicTracks: musicTracks || [],
-      galleryFiles: galleryFiles || [],
-      eventName: artistData.eventName || "",
-    };
-
-    // Save artist data to Google Cloud Storage
-    await GCSService.saveArtistData(newArtist);
-
-    // Add to event's artist index
-    await upsertArrayFile(paths.artistsIndex(eventId), {
-      id: newArtist.id,
-      artistName: newArtist.artistName,
-      eventId: eventId,
-      status: newArtist.status,
-      createdAt: newArtist.createdAt,
-      performanceDate: null,
-      assignDate: event?.createdAt || null,
-    });
-
-    // Broadcast update to WebSocket clients
-    await broadcastEventsUpdate();
-
-    console.log(
-      `Artist data saved to Google Cloud Storage for artist: ${newArtist.id}`
-    );
-
-    return NextResponse.json(
-      {
-        message: "Artist registered successfully",
-        artist: newArtist,
-        storage: "Data saved to Google Cloud Storage",
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    console.error("Error creating artist:", error);
-    return NextResponse.json(
-      { error: "Failed to register artist in Google Cloud Storage" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { eventId: string } }
-) {
-  try {
-    const eventId = params.eventId;
-    const { artistId } = await request.json();
-
-		// Get artist data from GCS to verify it exists
-		const artistData = await GCSService.getArtistData(artistId);
-
-		if (!artistData || artistData.eventId !== eventId) {
-			return NextResponse.json(
-				{ error: "Artist not found for this event" },
-				{ status: 404 }
+		if (!eventId) {
+			return NextResponse.json<ApiResponse<null>>(
+				{
+					success: false,
+					error: {
+						code: "MISSING_EVENT_ID",
+						message: "Event ID is required",
+					},
+					timestamp: new Date().toISOString(),
+				},
+				{ status: 400 }
 			);
 		}
 
-		// Delete artist files from GCS
-		const filesToDelete = [
-			`artists/${artistId}/profile.json`,
-			`artists/${artistId}/technical.json`,
-			`artists/${artistId}/social.json`,
-			`artists/${artistId}/notes.json`,
-			`artists/${artistId}/music.json`,
-			`artists/${artistId}/gallery.json`,
-			`events/${eventId}/artists/${artistId}.json`,
-		];
+		// Get all artists for the event
+		// First, try to get real artist data from GCS
+		let artists: any[] = [];
 
-		for (const file of filesToDelete) {
-			try {
-				await GCSService.deleteFile(file);
-			} catch (error) {
-				console.warn(`Failed to delete file ${file}:`, error);
+		try {
+			// List all artist files for this event
+			const artistFiles = await GCSService.listFiles(
+				`events/${eventId}/artists/`
+			);
+
+			// Extract artist IDs from file paths
+			const artistIds = artistFiles
+				.map((filePath) =>
+					filePath.split("/").pop()?.replace(".json", "")
+				)
+				.filter((id): id is string => !!id);
+
+			if (artistIds.length > 0) {
+				// Use batch fetching for better performance
+				artists = await GCSService.batchGetArtistData(artistIds);
 			}
+		} catch (error) {
+			console.error("Error fetching artists from GCS:", error);
+			// Fall back to sample data if no real data exists
+			artists = await GCSService.getEventArtists(eventId);
 		}
 
-		return NextResponse.json({
-			message: "Artist removed successfully from Google Cloud Storage",
+		// If no artists found, return empty array
+		if (artists.length === 0) {
+			return NextResponse.json<ApiResponse<any[]>>({
+				success: true,
+				data: [],
+				timestamp: new Date().toISOString(),
+			});
+		}
+
+		// Ensure all artists have proper media URLs
+		const artistsWithValidUrls = await Promise.all(
+			artists.map(async (artist) => {
+				if (!artist) return null;
+
+				try {
+					// Refresh media URLs if needed
+					const musicTracks = await Promise.all(
+						(artist.musicTracks || []).map(async (track: any) => {
+							if (
+								GCSService.isBlobUrl(track.file_url) &&
+								track.file_path
+							) {
+								try {
+									track.file_url =
+										await GCSService.getSignedUrl(
+											track.file_path,
+											24 * 60 * 60
+										);
+								} catch (error) {
+									console.error(
+										"Failed to refresh music track URL:",
+										error
+									);
+									track.file_url = null;
+								}
+							}
+							return track;
+						})
+					);
+
+					const galleryFiles = await Promise.all(
+						(artist.galleryFiles || []).map(async (file: any) => {
+							if (
+								GCSService.isBlobUrl(file.url) &&
+								file.file_path
+							) {
+								try {
+									file.url = await GCSService.getSignedUrl(
+										file.file_path,
+										24 * 60 * 60
+									);
+								} catch (error) {
+									console.error(
+										"Failed to refresh gallery file URL:",
+										error
+									);
+									file.url = null;
+								}
+							}
+							return file;
+						})
+					);
+
+					return {
+						...artist,
+						musicTracks,
+						galleryFiles,
+					};
+				} catch (error) {
+					console.error("Error processing artist media URLs:", error);
+					return artist;
+				}
+			})
+		);
+
+		const validArtists = artistsWithValidUrls.filter(
+			(artist) => artist !== null
+		);
+
+		return NextResponse.json<ApiResponse<any[]>>({
+			success: true,
+			data: validArtists,
+			timestamp: new Date().toISOString(),
 		});
-	} catch (error) {
-		console.error("Error deleting artist:", error);
-		return NextResponse.json(
-			{ error: "Failed to remove artist from Google Cloud Storage" },
+	} catch (error: any) {
+		console.error("Error fetching event artists:", error);
+
+		return NextResponse.json<ApiResponse<null>>(
+			{
+				success: false,
+				error: {
+					code: "INTERNAL_ERROR",
+					message: "Failed to fetch event artists",
+				},
+				timestamp: new Date().toISOString(),
+			},
+			{ status: 500 }
+		);
+	}
+}
+
+export async function POST(
+	request: NextRequest,
+	{ params }: { params: { eventId: string } }
+) {
+	try {
+		const { eventId } = params;
+		const artistData = await request.json();
+
+		if (!eventId) {
+			return NextResponse.json<ApiResponse<null>>(
+				{
+					success: false,
+					error: {
+						code: "MISSING_EVENT_ID",
+						message: "Event ID is required",
+					},
+					timestamp: new Date().toISOString(),
+				},
+				{ status: 400 }
+			);
+		}
+
+		// Validate required fields
+		if (!artistData.artistName || !artistData.email) {
+			return NextResponse.json<ApiResponse<null>>(
+				{
+					success: false,
+					error: {
+						code: "MISSING_REQUIRED_FIELDS",
+						message: "Artist name and email are required",
+					},
+					timestamp: new Date().toISOString(),
+				},
+				{ status: 400 }
+			);
+		}
+
+		// Generate artist ID
+		const artistId = `artist_${Date.now()}_${Math.random()
+			.toString(36)
+			.substr(2, 9)}`;
+
+		// Prepare complete artist data
+		const completeArtistData = {
+			id: artistId,
+			eventId,
+			...artistData,
+			status: "pending",
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		};
+
+		// Save artist data to GCS
+		await GCSService.saveArtistData(completeArtistData);
+
+		// Get the saved data with proper media URLs
+		const savedArtist = await GCSService.getArtistData(artistId);
+
+		// Broadcast artist registration to WebSocket subscribers
+		try {
+			await broadcastArtistRegistration(eventId, savedArtist);
+			console.log(
+				`Broadcasted artist registration for ${
+					savedArtist.artistName || savedArtist.artist_name
+				}`
+			);
+		} catch (error) {
+			console.error("Error broadcasting artist registration:", error);
+			// Don't fail the request if broadcasting fails
+		}
+
+		return NextResponse.json<ApiResponse<any>>(
+			{
+				success: true,
+				data: savedArtist,
+				timestamp: new Date().toISOString(),
+			},
+			{ status: 201 }
+		);
+	} catch (error: any) {
+		console.error("Error creating artist:", error);
+
+		return NextResponse.json<ApiResponse<null>>(
+			{
+				success: false,
+				error: {
+					code: "INTERNAL_ERROR",
+					message: "Failed to create artist",
+				},
+				timestamp: new Date().toISOString(),
+			},
 			{ status: 500 }
 		);
 	}

@@ -67,13 +67,13 @@ export default function PerformanceOrderManagement() {
 				setPerformanceOrder(orderData.performanceOrder || []);
 			}
 
-			// Fetch artists
+			// Fetch artists (from GCS via API)
 			const artistResponse = await fetch(
 				`/api/events/${eventId}/artists`
 			);
 			if (artistResponse.ok) {
 				const artistData = await artistResponse.json();
-				setArtists(artistData.artists || []);
+				setArtists(artistData.data || []);
 			}
 		} catch (error) {
 			console.error("Error fetching data:", error);

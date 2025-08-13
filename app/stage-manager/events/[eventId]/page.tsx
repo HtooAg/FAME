@@ -212,9 +212,13 @@ export default function EventManagementPage() {
 								</CardHeader>
 								<CardContent className="space-y-4">
 									<div className="p-2 bg-muted rounded-md text-sm break-all">
-										{typeof window !== "undefined"
-											? `${window.location.origin}/artist-register/${eventId}`
-											: `https://fame.com/artist-register/${eventId}`}
+										{(() => {
+											const origin =
+												typeof window !== "undefined"
+													? window.location.origin
+													: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+											return `${origin}/artist-register/${eventId}`;
+										})()}
 									</div>
 									<Link
 										href={`/stage-manager/events/${eventId}/artists`}

@@ -703,10 +703,7 @@ export default function ArtistDashboard() {
 												Starting Position
 											</p>
 											<p className="font-medium capitalize">
-												{profile.stagePositionStart.replace(
-													"-",
-													" "
-												)}
+												{profile.stagePositionStart?.replace("-", " ") ?? "Not specified"}
 											</p>
 										</div>
 										<div>
@@ -714,10 +711,7 @@ export default function ArtistDashboard() {
 												Ending Position
 											</p>
 											<p className="font-medium capitalize">
-												{profile.stagePositionEnd.replace(
-													"-",
-													" "
-												)}
+												{profile.stagePositionEnd?.replace("-", " ") ?? "Not specified"}
 											</p>
 										</div>
 										{profile.customStagePosition && (

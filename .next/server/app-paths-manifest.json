@@ -1,12 +1,12 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/super-admin/page": "app/super-admin/page.js",
-  "/artist-dashboard/[artistId]/page": "app/artist-dashboard/[artistId]/page.js",
-  "/stage-manager/events/page": "app/stage-manager/events/page.js",
+  "/stage-manager/page": "app/stage-manager/page.js",
+  "/api/events/[eventId]/route": "app/api/events/[eventId]/route.js",
   "/stage-manager/events/[eventId]/page": "app/stage-manager/events/[eventId]/page.js",
-  "/artist-dashboard/page": "app/artist-dashboard/page.js",
-  "/api/auth/me/route": "app/api/auth/me/route.js",
-  "/api/artists/profile/route": "app/api/artists/profile/route.js",
-  "/api/artists/[artistId]/route": "app/api/artists/[artistId]/route.js",
-  "/api/websocket/route": "app/api/websocket/route.js"
+  "/stage-manager/events/[eventId]/artists/page": "app/stage-manager/events/[eventId]/artists/page.js",
+  "/stage-manager/events/[eventId]/rehearsal/page": "app/stage-manager/events/[eventId]/rehearsal/page.js",
+  "/stage-manager/events/[eventId]/performance-order/page": "app/stage-manager/events/[eventId]/performance-order/page.js",
+  "/api/events/[eventId]/performance-order/route": "app/api/events/[eventId]/performance-order/route.js",
+  "/api/events/[eventId]/artists/route": "app/api/events/[eventId]/artists/route.js",
+  "/api/websocket/route": "app/api/websocket/route.js",
+  "/api/artists/[artistId]/route": "app/api/artists/[artistId]/route.js"
 }

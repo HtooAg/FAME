@@ -48,9 +48,56 @@ export interface FileUploadResult {
 	gcsPath: string;
 }
 
+// Signed URL cache with TTL
+interface CachedSignedUrl {
+	url: string;
+	expiresAt: number;
+}
+
+const signedUrlCache = new Map<string, CachedSignedUrl>();
+
 export class GCSService {
 	/**
-	 * Upload a file to Google Cloud Storage
+	 * Check if a URL is a blob URL that needs to be replaced
+	 */
+	static isBlobUrl(url: string): boolean {
+		return (
+			typeof url === "string" &&
+			(url.startsWith("blob:") || url === "" || !url)
+		);
+	}
+
+	/**
+	 * Clear expired entries from the signed URL cache
+	 */
+	static clearExpiredCache(): void {
+		const now = Date.now();
+		for (const [key, cached] of signedUrlCache.entries()) {
+			if (cached.expiresAt <= now) {
+				signedUrlCache.delete(key);
+			}
+		}
+	}
+
+	/**
+	 * Check if a file exists in Google Cloud Storage
+	 */
+	static async fileExists(path: string): Promise<boolean> {
+		try {
+			if (!bucket) {
+				return false;
+			}
+			const gcsFile = bucket.file(path);
+			const [exists] = await gcsFile.exists();
+			return exists;
+		} catch (error) {
+			console.error(`Error checking if file exists: ${path}`, error);
+			return false;
+		}
+	}
+
+	/**
+	 * Upload a file to Google Cloud Storage with enhanced error handling
 	 */
 	static async uploadFile(
 		file: Buffer,
@@ -73,17 +120,15 @@ export class GCSService {
 				public: false,
 			});
 
-			const [signedUrl] = await gcsFile.getSignedUrl({
-				action: "read",
-				expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
-			});
+			// Generate initial signed URL with proper error handling
+			const signedUrl = await this.getSignedUrl(gcsPath, 24 * 60 * 60);
 
 			return {
 				url: signedUrl,
 				filename,
 				size: file.length,
 				contentType,
-				gcsPath,
+				gcsPath, // Store the path for future URL generation
 			};
 		} catch (error) {
 			console.error(
@@ -195,7 +240,7 @@ export class GCSService {
 	}
 
 	/**
-	 * Get signed URL for file access
+	 * Get signed URL for file access with caching
 	 */
 	static async getSignedUrl(
 		path: string,
@@ -206,12 +251,36 @@ export class GCSService {
 				throw new Error("Google Cloud Storage not initialized");
 			}
 
+			// Clean up expired cache entries periodically
+			this.clearExpiredCache();
+
+			// Check cache first (with 5-minute buffer before expiration)
+			const cacheKey = `${path}:${expiresIn}`;
+			const cached = signedUrlCache.get(cacheKey);
+			const now = Date.now();
+
+			if (cached && cached.expiresAt > now + 5 * 60 * 1000) {
+				console.log(`Using cached signed URL for GCS file: ${path}`);
+				return cached.url;
+			}
+
+			// Generate new signed URL
 			const gcsFile = bucket.file(path);
+			const expirationTime = Date.now() + expiresIn * 1000;
 			const [signedUrl] = await gcsFile.getSignedUrl({
 				action: "read",
-				expires: Date.now() + expiresIn * 1000,
+				expires: expirationTime,
 			});
-			console.log(`Generated signed URL for GCS file: ${path}`);
+
+			// Cache the URL (expires 5 minutes before actual expiration for safety)
+			signedUrlCache.set(cacheKey, {
+				url: signedUrl,
+				expiresAt: expirationTime - 5 * 60 * 1000,
+			});
+
+			console.log(
+				`Generated and cached signed URL for GCS file: ${path}`
+			);
 			return signedUrl;
 		} catch (error) {
 			console.error(
@@ -349,9 +418,7 @@ export class GCSService {
 			const musicTracks = await Promise.all(
 				rawTracks.map(async (t: any) => {
 					const track = { ...t };
-					const isBlob =
-						typeof track.file_url === "string" &&
-						track.file_url.startsWith("blob:");
+					const isBlob = this.isBlobUrl(track.file_url);
 					if ((isBlob || !track.file_url) && track.file_path) {
 						try {
 							track.file_url = await this.getSignedUrl(
@@ -364,6 +431,8 @@ export class GCSService {
 								track.file_path,
 								e
 							);
+							// Set to null so UI can handle the error
+							track.file_url = null;
 						}
 					}
 					return track;
@@ -374,9 +443,7 @@ export class GCSService {
 			const galleryFiles = await Promise.all(
 				rawFiles.map(async (f: any) => {
 					const file = { ...f };
-					const isBlob =
-						typeof file.file_url === "string" &&
-						file.file_url.startsWith("blob:");
+					const isBlob = this.isBlobUrl(file.file_url);
 					if ((isBlob || !file.file_url) && file.file_path) {
 						try {
 							file.file_url = await this.getSignedUrl(
@@ -389,6 +456,8 @@ export class GCSService {
 								file.file_path,
 								e
 							);
+							// Set to null so UI can handle the error
+							file.file_url = null;
 						}
 					}
 					return file;
@@ -406,6 +475,169 @@ export class GCSService {
 		} catch (error) {
 			console.error("Error getting artist data:", error);
 			return null;
+		}
+	}
+
+	/**
+	 * Batch fetch multiple artists efficiently
+	 */
+	static async batchGetArtistData(artistIds: string[]): Promise<any[]> {
+		try {
+			// Batch all file reads for all artists
+			const allFileReads = artistIds.flatMap((artistId) => [
+				this.readJSON(`artists/${artistId}/profile.json`),
+				this.readJSON(`artists/${artistId}/technical.json`),
+				this.readJSON(`artists/${artistId}/social.json`),
+				this.readJSON(`artists/${artistId}/notes.json`),
+				this.readJSON(`artists/${artistId}/music.json`),
+				this.readJSON(`artists/${artistId}/gallery.json`),
+			]);
+
+			// Execute all reads in parallel
+			const allResults = await Promise.all(allFileReads);
+
+			// Process results for each artist
+			const artists = await Promise.all(
+				artistIds.map(async (artistId, index) => {
+					const baseIndex = index * 6;
+					const [profile, technical, social, notes, music, gallery] =
+						allResults.slice(baseIndex, baseIndex + 6);
+
+					if (!profile) {
+						return null;
+					}
+
+					// Process media files with lazy loading approach
+					const rawTracks = Array.isArray(music?.tracks)
+						? music.tracks
+						: [];
+					const rawFiles = Array.isArray(gallery?.files)
+						? gallery.files
+						: [];
+
+					// Only generate signed URLs for media that will be immediately visible
+					// For performance, we'll defer URL generation for gallery files
+					const musicTracks = await Promise.all(
+						rawTracks.slice(0, 3).map(async (t: any) => {
+							// Only first 3 tracks
+							const track = { ...t };
+							if (
+								this.isBlobUrl(track.file_url) &&
+								track.file_path
+							) {
+								try {
+									track.file_url = await this.getSignedUrl(
+										track.file_path,
+										24 * 60 * 60
+									);
+								} catch (e) {
+									console.error(
+										"Failed to sign music track path:",
+										track.file_path,
+										e
+									);
+									track.file_url = null;
+								}
+							}
+							return track;
+						})
+					);
+
+					// Add remaining tracks without URLs (lazy loading)
+					const remainingTracks = rawTracks
+						.slice(3)
+						.map((t: any) => ({
+							...t,
+							file_url: t.file_path ? null : t.file_url, // Mark for lazy loading
+							needsUrl: !!t.file_path,
+						}));
+
+					// For gallery, only process first few images for preview
+					const galleryFiles = rawFiles.slice(0, 6).map((f: any) => ({
+						...f,
+						url: f.file_path ? null : f.url, // Mark for lazy loading
+						needsUrl: !!f.file_path,
+					}));
+
+					return {
+						...profile,
+						...technical,
+						...social,
+						...notes,
+						musicTracks: [...musicTracks, ...remainingTracks],
+						galleryFiles,
+						totalMusicTracks: rawTracks.length,
+						totalGalleryFiles: rawFiles.length,
+					};
+				})
+			);
+
+			return artists.filter((artist) => artist !== null);
+		} catch (error) {
+			console.error("Error batch getting artist data:", error);
+			return [];
+		}
+	}
+
+	/**
+	 * Lazy load media URLs for a specific artist
+	 */
+	static async loadArtistMediaUrls(
+		artistId: string,
+		mediaType: "music" | "gallery",
+		startIndex: number = 0,
+		count: number = 10
+	): Promise<any[]> {
+		try {
+			const mediaData =
+				mediaType === "music"
+					? await this.readJSON(`artists/${artistId}/music.json`)
+					: await this.readJSON(`artists/${artistId}/gallery.json`);
+
+			const items =
+				mediaType === "music"
+					? Array.isArray(mediaData?.tracks)
+						? mediaData.tracks
+						: []
+					: Array.isArray(mediaData?.files)
+					? mediaData.files
+					: [];
+
+			const selectedItems = items.slice(startIndex, startIndex + count);
+
+			// Generate signed URLs for the requested items
+			const itemsWithUrls = await Promise.all(
+				selectedItems.map(async (item: any) => {
+					const urlField = mediaType === "music" ? "file_url" : "url";
+					const pathField =
+						mediaType === "music" ? "file_path" : "file_path";
+
+					if (this.isBlobUrl(item[urlField]) && item[pathField]) {
+						try {
+							item[urlField] = await this.getSignedUrl(
+								item[pathField],
+								24 * 60 * 60
+							);
+						} catch (e) {
+							console.error(
+								`Failed to sign ${mediaType} path:`,
+								item[pathField],
+								e
+							);
+							item[urlField] = null;
+						}
+					}
+					return item;
+				})
+			);
+
+			return itemsWithUrls;
+		} catch (error) {
+			console.error(
+				`Error loading ${mediaType} URLs for artist ${artistId}:`,
+				error
+			);
+			return [];
 		}
 	}
 

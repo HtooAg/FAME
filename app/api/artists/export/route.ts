@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
 		// Read main artists data
 		const artistsFile = join(process.cwd(), "data", "artists.json");
-		let artists = [];
+		let artists: any[] = [];
 
 		if (existsSync(artistsFile)) {
 			const fileContent = readFileSync(artistsFile, "utf8");
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 				"artists",
 				artistId
 			);
-			let gcsData = {};
+			let gcsData: Record<string, unknown> = {};
 
 			if (existsSync(gcsDir)) {
 				const files = readdirSync(gcsDir);
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
 			// Get uploaded files info
 			const uploadsDir = join(process.cwd(), "uploads", artistId);
-			let uploadedFiles = {};
+			let uploadedFiles: Record<string, { name: string; path: string; size: number }[]> = {};
 
 			if (existsSync(uploadsDir)) {
 				const categories = readdirSync(uploadsDir);

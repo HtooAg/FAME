@@ -120,6 +120,65 @@ function initWebSocketServer() {
 					if (user && user.role === "stage_manager") {
 						await sendEventsToUser(ws, user);
 					}
+				} else if (
+					data.type === "subscribe" &&
+					data.channel === "artist_submissions"
+				) {
+					// Subscribe to artist submission notifications for specific event
+					const user = authenticatedConnections.get(ws);
+					if (
+						user &&
+						(user.role === "stage_manager" ||
+							user.role === "super_admin")
+					) {
+						// Store subscription info on the WebSocket connection
+						if (!(ws as any).eventSubscriptions) {
+							(ws as any).eventSubscriptions = new Set();
+						}
+						(ws as any).eventSubscriptions.add(data.eventId);
+
+						ws.send(
+							JSON.stringify({
+								type: "subscription_confirmed",
+								channel: "artist_submissions",
+								eventId: data.eventId,
+								timestamp: new Date().toISOString(),
+							})
+						);
+
+						console.log(
+							`User ${user.userId} subscribed to artist submissions for event ${data.eventId}`
+						);
+					} else {
+						ws.send(
+							JSON.stringify({
+								type: "subscription_error",
+								error: "Unauthorized to subscribe to artist submissions",
+							})
+						);
+					}
+				} else if (
+					data.type === "unsubscribe" &&
+					data.channel === "artist_submissions"
+				) {
+					// Unsubscribe from artist submission notifications
+					const user = authenticatedConnections.get(ws);
+					if (user && (ws as any).eventSubscriptions) {
+						(ws as any).eventSubscriptions.delete(data.eventId);
+
+						ws.send(
+							JSON.stringify({
+								type: "unsubscription_confirmed",
+								channel: "artist_submissions",
+								eventId: data.eventId,
+								timestamp: new Date().toISOString(),
+							})
+						);
+
+						console.log(
+							`User ${user.userId} unsubscribed from artist submissions for event ${data.eventId}`
+						);
+					}
 				}
 			} catch (error) {
 				console.error("WebSocket message error:", error);
@@ -213,6 +272,76 @@ export async function broadcastUserStatusUpdate(
 			}
 		}
 	}
+}
+
+// Broadcast artist update to subscribed users
+export async function broadcastArtistUpdate(
+	eventId: string,
+	artistData: any,
+	updateType: string
+) {
+	if (!wss) return;
+
+	console.log(
+		`Broadcasting artist update: ${updateType} for event ${eventId}`
+	);
+
+	for (const [ws, user] of authenticatedConnections.entries()) {
+		if (
+			ws.readyState === ws.OPEN &&
+			(user?.role === "stage_manager" || user?.role === "super_admin") &&
+			(ws as any).eventSubscriptions?.has(eventId)
+		) {
+			try {
+				ws.send(
+					JSON.stringify({
+						type: updateType,
+						data: artistData,
+						eventId,
+						timestamp: new Date().toISOString(),
+					})
+				);
+
+				console.log(
+					`Sent ${updateType} notification to user ${user.userId}`
+				);
+			} catch (e) {
+				console.error("Error broadcasting artist update:", e);
+			}
+		}
+	}
+}
+
+// Broadcast artist registration notification
+export async function broadcastArtistRegistration(
+	eventId: string,
+	artistData: any
+) {
+	await broadcastArtistUpdate(eventId, artistData, "artist_registered");
+}
+
+// Broadcast artist assignment notification
+export async function broadcastArtistAssignment(
+	eventId: string,
+	artistData: any
+) {
+	await broadcastArtistUpdate(eventId, artistData, "artist_assigned");
+}
+
+// Broadcast artist status change notification
+export async function broadcastArtistStatusChange(
+	eventId: string,
+	artistData: any
+) {
+	await broadcastArtistUpdate(eventId, artistData, "artist_status_changed");
+}
+
+// Broadcast artist deletion notification
+export async function broadcastArtistDeletion(
+	eventId: string,
+	artistData: any
+) {
+	await broadcastArtistUpdate(eventId, artistData, "artist_deleted");
 }
 
 // API endpoint to initialize WebSocket server

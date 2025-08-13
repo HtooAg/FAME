@@ -1,41 +1,3 @@
-// Artist Profile Types
-export interface MusicTrack {
-	song_title: string;
-	duration: number;
-	notes: string;
-	is_main_track: boolean;
-	tempo: string;
-	file_url: string;
-}
-
-export interface GalleryFile {
-	url: string;
-	type: "image" | "video";
-	name: string;
-}
-
-export interface SocialMediaLinks {
-	instagram?: string;
-	facebook?: string;
-	youtube?: string;
-	tiktok?: string;
-	website?: string;
-}
-
-export interface TechnicalRequirements {
-	costumeColor: string;
-	customCostumeColor?: string;
-	lightColorSingle: string;
-	lightColorTwo: string;
-	lightColorThree: string;
-	lightRequests: string;
-	stagePositionStart: string;
-	stagePositionEnd: string;
-	customStagePosition?: string;
-	mcNotes: string;
-	stageManagerNotes: string;
-}
-
 export interface ArtistProfile {
 	id: string;
 	artistName: string;
@@ -52,12 +14,8 @@ export interface ArtistProfile {
 	createdAt: string;
 	updatedAt?: string;
 	lastLogin?: string;
-	musicTracks?: MusicTrack[];
-	galleryFiles?: GalleryFile[];
-	socialMedia?: SocialMediaLinks;
-	technicalRequirements: TechnicalRequirements;
-	showLink?: string;
-	// Legacy fields for backward compatibility
+
+	// Technical requirements
 	costumeColor: string;
 	customCostumeColor?: string;
 	lightColorSingle: string;
@@ -67,32 +25,59 @@ export interface ArtistProfile {
 	stagePositionStart: string;
 	stagePositionEnd: string;
 	customStagePosition?: string;
+	equipment?: string;
+	specialRequirements?: string;
+
+	// Media files
+	musicTracks: MusicTrack[];
+	galleryFiles: GalleryFile[];
+
+	// Social media and links
+	socialMedia: {
+		instagram?: string;
+		facebook?: string;
+		youtube?: string;
+		tiktok?: string;
+		website?: string;
+	};
+	showLink?: string;
+
+	// Notes and communication
 	mcNotes: string;
 	stageManagerNotes: string;
+	notes?: string;
 }
 
-export interface ArtistDashboardProps {
-	params: {
-		artistId: string;
-	};
+export interface MusicTrack {
+	song_title: string;
+	duration: number;
+	notes: string;
+	is_main_track: boolean;
+	tempo: string;
+	file_url: string;
+	file_path?: string;
+	uploadedAt?: string;
+	fileSize?: number;
+	contentType?: string;
 }
 
-// API Response Types
-export interface ApiError {
-	success: false;
-	error: {
-		code: string;
+export interface GalleryFile {
+	name: string;
+	type: "image" | "video";
+	url: string;
+	file_path?: string;
+	size: number;
+	uploadedAt?: string;
+	contentType?: string;
+	thumbnail?: string; // For videos
+}
+
+export interface ApiResponse<T> {
+	success: boolean;
+	data?: T;
+	error?: {
 		message: string;
-		details?: any;
+		code?: string;
 	};
 	timestamp: string;
 }
-
-export interface ApiSuccess<T> {
-	success: true;
-	data: T;
-	timestamp: string;
-	message?: string;
-}
-
-export type ApiResponse<T> = ApiSuccess<T> | ApiError;
