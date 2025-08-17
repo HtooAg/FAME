@@ -8,6 +8,13 @@ export interface MockUser {
 	status: "active" | "pending" | "inactive";
 	createdAt: string;
 	lastLogin?: string;
+	// Additional fields used across the app for stage managers
+	accountStatus?: "pending" | "active" | "suspended" | "deactivated" | "rejected";
+	subscriptionStatus?: string;
+	subscriptionEndDate?: string;
+	eventId?: string;
+	eventName?: string;
+	isActive?: boolean;
 }
 
 export interface MockEvent {
@@ -35,6 +42,9 @@ export interface MockPendingRegistration {
 	role: string;
 	submittedAt: string;
 	status: "pending" | "approved" | "rejected";
+	// Optional fields referenced by UI
+	eventName?: string;
+	registeredAt?: string;
 }
 
 export const mockUsers: MockUser[] = [

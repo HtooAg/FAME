@@ -231,15 +231,15 @@ export default function ArtistDashboard() {
 								</p>
 							</div>
 							<div className="flex items-center gap-2">
-								<Badge
+								{/* <Badge
 									variant={getStatusBadgeVariant(
 										profile.status
 									)}
 								>
 									{profile.status.charAt(0).toUpperCase() +
 										profile.status.slice(1)}
-								</Badge>
-								<NotificationBell />
+								</Badge> */}
+								{/* <NotificationBell /> */}
 								{/* <Button	
 									variant="outline"
 									size="sm"
@@ -256,7 +256,7 @@ export default function ArtistDashboard() {
 									size="sm"
 									onClick={() =>
 										router.push(
-											`/artist-register/${profile.eventId}?artistId=${profile.id}`
+											`/artist-edit/${profile.id}`
 										)
 									}
 								>
@@ -628,7 +628,10 @@ export default function ArtistDashboard() {
 												Starting Position
 											</p>
 											<p className="font-medium capitalize">
-												{profile.stagePositionStart?.replace("-", " ") ?? "Not specified"}
+												{profile.stagePositionStart?.replace(
+													"-",
+													" "
+												) ?? "Not specified"}
 											</p>
 										</div>
 										<div>
@@ -636,7 +639,10 @@ export default function ArtistDashboard() {
 												Ending Position
 											</p>
 											<p className="font-medium capitalize">
-												{profile.stagePositionEnd?.replace("-", " ") ?? "Not specified"}
+												{profile.stagePositionEnd?.replace(
+													"-",
+													" "
+												) ?? "Not specified"}
 											</p>
 										</div>
 										{profile.customStagePosition && (
@@ -810,13 +816,13 @@ export default function ArtistDashboard() {
 										<Button
 											onClick={() =>
 												router.push(
-													`/artist-register/${profile.eventId}?artistId=${profile.id}`
+													`/artist-edit/${profile.id}`
 												)
 											}
 											className="w-full"
 										>
 											<Edit className="h-4 w-4 mr-2" />
-											Edit Registration
+											Edit Profile
 										</Button>
 									</div>
 								</CardContent>

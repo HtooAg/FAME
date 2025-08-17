@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions, type Secret } from "jsonwebtoken";
 import { readJsonFile, readJsonDirectory, paths } from "@/lib/gcs";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-do-not-use-in-prod";
@@ -100,15 +100,19 @@ export async function POST(request: NextRequest) {
 			}
 		}
 
-		const token = jwt.sign(
-			{
-				userId: user.id,
-				email: user.email,
-				role: user.role,
-				eventId: user.eventId,
-			},
-			JWT_SECRET,
-			{ expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+		const payload = {
+			userId: user.id,
+			email: user.email,
+			role: user.role,
+			eventId: user.eventId,
+		};
+		const signOptions: SignOptions = {
+			expiresIn: 60 * 60 * 24 * 7, // 7 days in seconds
+		};
+		const token: string = jwt.sign(
+			payload,
+			JWT_SECRET as Secret,
+			signOptions
 		);
 
 		const response = NextResponse.json({
@@ -136,7 +140,7 @@ export async function POST(request: NextRequest) {
 			"Login successful, setting cookie with options:",
 			cookieOptions
 		); // Debug log
-		console.log("Token preview:", token.substring(0, 50) + "..."); // Debug log
+		console.log("Token preview:", token?.substring(0, 50) + "..."); // Debug log
 		console.log("Login successful, returning user data"); // Debug log
 		return response;
 	} catch (error) {

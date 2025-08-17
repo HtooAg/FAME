@@ -1,15 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Storage } from "@google-cloud/storage";
-import { v4 as uuidv4 } from "uuid";
-
-// Initialize Google Cloud Storage
-const storage = new Storage({
-	projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-	keyFilename: process.env.GOOGLE_CLOUD_KEY_FILE, // Path to service account key
-});
-
-const bucketName =
-	process.env.GOOGLE_CLOUD_STORAGE_BUCKET || "fame-event-storage";
+import { GCSService } from "@/lib/google-cloud-storage";
 
 export async function POST(request: NextRequest) {
 	try {
@@ -17,65 +7,78 @@ export async function POST(request: NextRequest) {
 		const file = formData.get("file") as File;
 		const eventId = formData.get("eventId") as string;
 		const artistId = formData.get("artistId") as string;
-		const fileType = formData.get("fileType") as string; // 'music', 'image', 'document'
+		const fileType = formData.get("fileType") as string; // "music", "images", "videos"
 
-		if (!file || !eventId) {
+		console.log("Upload request:", {
+			fileName: file?.name,
+			fileSize: file?.size,
+			fileType,
+			eventId,
+			artistId,
+		});
+
+		if (!file) {
 			return NextResponse.json(
-				{ error: "File and eventId are required" },
+				{
+					success: false,
+					error: "No file provided",
+				},
 				{ status: 400 }
 			);
 		}
 
-		// Generate unique filename
-		const fileExtension = file.name.split(".").pop();
-		const fileName = `${eventId}/${fileType}/${
-			artistId || "general"
-		}/${uuidv4()}.${fileExtension}`;
+		if (!eventId || !artistId || !fileType) {
+			return NextResponse.json(
+				{
+					success: false,
+					error: "Missing required parameters: eventId, artistId, or fileType",
+				},
+				{ status: 400 }
+			);
+		}
 
 		// Convert file to buffer
 		const bytes = await file.arrayBuffer();
 		const buffer = Buffer.from(bytes);
 
-		// Upload to Google Cloud Storage
-		const bucket = storage.bucket(bucketName);
-		const gcsFile = bucket.file(fileName);
+		// Generate unique filename
+		const timestamp = Date.now();
+		const randomString = Math.random().toString(36).substring(2, 11);
+		const fileExtension = file.name.split(".").pop() || "";
+		const fileName = `${file.name.replace(
+			/[^a-zA-Z0-9.-]/g,
+			"_"
+		)}_${timestamp}_${randomString}.${fileExtension}`;
 
-		await gcsFile.save(buffer, {
-			metadata: {
-				contentType: file.type,
-				metadata: {
-					eventId,
-					artistId: artistId || "",
-					fileType,
-					originalName: file.name,
-					uploadedAt: new Date().toISOString(),
-				},
-			},
-		});
+		// Determine folder structure based on file type
+		const folder = `events/${eventId}/artists/${artistId}/${fileType}`;
 
-		// Make file publicly accessible
-		await gcsFile.makePublic();
+		console.log("Uploading to GCS:", { fileName, folder });
 
-		// Get public URL
-		const publicUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+		// Upload file to Google Cloud Storage
+		const uploadResult = await GCSService.uploadFile(
+			buffer,
+			fileName,
+			folder,
+			file.type
+		);
+
+		console.log("Upload successful:", uploadResult);
 
 		return NextResponse.json({
 			success: true,
-			url: publicUrl,
-			fileName,
-			metadata: {
-				eventId,
-				artistId,
-				fileType,
-				originalName: file.name,
-				size: file.size,
-				contentType: file.type,
-			},
+			url: uploadResult.url,
+			fileName: uploadResult.gcsPath,
+			size: uploadResult.size,
+			contentType: uploadResult.contentType,
 		});
 	} catch (error) {
-		console.error("Upload error:", error);
+		console.error("Error uploading file to GCS:", error);
 		return NextResponse.json(
-			{ error: "Failed to upload file" },
+			{
+				success: false,
+				error: "Failed to upload file",
+			},
 			{ status: 500 }
 		);
 	}

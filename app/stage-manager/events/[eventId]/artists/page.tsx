@@ -160,29 +160,39 @@ export default function ArtistManagement() {
 			if (response.ok) {
 				const data = await response.json();
 
-				// Process artists to match sample UI format
-				const processedArtists = (data.data || []).map(
-					(artist: any) => ({
-						id: artist.id,
-						artist_name: artist.artistName || artist.artist_name,
-						real_name: artist.realName || artist.real_name,
-						email: artist.email,
-						style: artist.style,
-						performance_duration:
-							artist.performanceDuration ||
-							artist.performance_duration,
-						performance_date:
-							artist.performanceDate || artist.performance_date,
-						created_at: artist.createdAt || artist.created_at,
-						status: artist.status || "pending",
-						actual_duration:
-							artist.musicTracks?.find(
-								(track: any) => track.is_main_track
-							)?.duration || null,
-					})
-				);
+				if (data.success) {
+					// Process artists to match sample UI format
+					const processedArtists = (data.data || []).map(
+						(artist: any) => ({
+							id: artist.id,
+							artist_name:
+								artist.artistName || artist.artist_name,
+							real_name: artist.realName || artist.real_name,
+							email: artist.email,
+							style: artist.style,
+							performance_duration:
+								artist.performanceDuration ||
+								artist.performance_duration,
+							performance_date:
+								artist.performanceDate ||
+								artist.performance_date,
+							created_at: artist.createdAt || artist.created_at,
+							status: artist.status || "pending",
+							actual_duration:
+								artist.musicTracks?.find(
+									(track: any) => track.is_main_track
+								)?.duration || null,
+						})
+					);
 
-				setArtists(processedArtists);
+					setArtists(processedArtists);
+					console.log(
+						`Loaded ${processedArtists.length} artists from GCS for event ${eventId}`
+					);
+				} else {
+					console.error("Failed to fetch artists:", data.error);
+					setArtists([]);
+				}
 			} else {
 				throw new Error("Failed to fetch artists");
 			}
@@ -373,6 +383,7 @@ export default function ArtistManagement() {
 					},
 					body: JSON.stringify({
 						performance_date: performanceDate,
+						performanceDate: performanceDate, // Also send both field names for compatibility
 					}),
 				}
 			);
@@ -690,15 +701,31 @@ Please use these credentials to access your artist dashboard.`;
 					<div className="space-y-8">
 						{/* Add Artist Manually */}
 						<div className="flex justify-end">
+							<Button
+								className="flex items-center gap-2"
+								onClick={() => {
+									const registrationUrl = `/artist-register/${eventId}`;
+									window.open(
+										registrationUrl,
+										"_blank",
+										"noopener,noreferrer"
+									);
+								}}
+							>
+								<Plus className="h-4 w-4" />
+								Add Artist Manually
+							</Button>
 							<Dialog
 								open={isAddDialogOpen}
 								onOpenChange={setIsAddDialogOpen}
 							>
 								<DialogTrigger asChild>
-									<Button className="flex items-center gap-2">
-										<Plus className="h-4 w-4" />
-										Add Artist Manually
-									</Button>
+									<div style={{ display: "none" }}>
+										<Button className="flex items-center gap-2">
+											<Plus className="h-4 w-4" />
+											Add Artist Manually (Hidden)
+										</Button>
+									</div>
 								</DialogTrigger>
 								<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
 									<DialogHeader>
@@ -1949,7 +1976,7 @@ Please use these credentials to access your artist dashboard.`;
 																<Eye className="h-3 w-3" />
 																View
 															</Button>
-															<Button
+															{/* <Button
 																variant="outline"
 																size="sm"
 																onClick={() =>
@@ -1961,7 +1988,7 @@ Please use these credentials to access your artist dashboard.`;
 															>
 																<UserCheck className="h-3 w-3" />
 																Status
-															</Button>
+															</Button> */}
 															<Button
 																variant="outline"
 																size="sm"
@@ -2174,7 +2201,7 @@ Please use these credentials to access your artist dashboard.`;
 																<Eye className="h-3 w-3" />
 																View
 															</Button>
-															<Button
+															{/* <Button
 																variant="outline"
 																size="sm"
 																onClick={() =>
@@ -2186,7 +2213,7 @@ Please use these credentials to access your artist dashboard.`;
 															>
 																<UserCheck className="h-3 w-3" />
 																Status
-															</Button>
+															</Button> */}
 															<AlertDialog>
 																<AlertDialogTrigger
 																	asChild

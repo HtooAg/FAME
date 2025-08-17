@@ -4,6 +4,9 @@ import { readJsonFile, readJsonDirectory, paths } from "@/lib/gcs";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-do-not-use-in-prod";
 
+// Force dynamic rendering since this route uses request.cookies
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
 	try {
 		const token = request.cookies.get("auth-token")?.value;

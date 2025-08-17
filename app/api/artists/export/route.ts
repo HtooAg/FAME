@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFileSync, existsSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 
+// Force dynamic rendering since this route uses request.url
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
 	try {
 		const { searchParams } = new URL(request.url);
@@ -51,7 +54,10 @@ export async function GET(request: NextRequest) {
 
 			// Get uploaded files info
 			const uploadsDir = join(process.cwd(), "uploads", artistId);
-			let uploadedFiles: Record<string, { name: string; path: string; size: number }[]> = {};
+			let uploadedFiles: Record<
+				string,
+				{ name: string; path: string; size: number }[]
+			> = {};
 
 			if (existsSync(uploadsDir)) {
 				const categories = readdirSync(uploadsDir);

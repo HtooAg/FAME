@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import GCSService from "@/lib/google-cloud-storage";
 
+// Force dynamic rendering since this route uses request.url
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
 	try {
 		const { searchParams } = new URL(request.url);

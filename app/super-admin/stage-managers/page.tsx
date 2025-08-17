@@ -142,7 +142,7 @@ export default function SuperAdminStageManagers() {
     }
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status?: string) => {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
       active: 'bg-green-100 text-green-800',
@@ -152,22 +152,28 @@ export default function SuperAdminStageManagers() {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800'
   }
 
-  const getSubscriptionColor = (endDate: string) => {
+  const getSubscriptionColor = (endDate?: string) => {
+    if (!endDate) return 'bg-gray-100 text-gray-800'
     const end = new Date(endDate)
+    if (isNaN(end.getTime())) return 'bg-gray-100 text-gray-800'
     const now = new Date()
     const daysLeft = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-    
     if (daysLeft < 0) return 'bg-red-100 text-red-800'
     if (daysLeft < 7) return 'bg-yellow-100 text-yellow-800'
     return 'bg-green-100 text-green-800'
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString()
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return ''
+    const d = new Date(dateString)
+    if (isNaN(d.getTime())) return ''
+    return d.toLocaleDateString()
   }
 
-  const getDaysUntilExpiry = (endDate: string) => {
+  const getDaysUntilExpiry = (endDate?: string) => {
+    if (!endDate) return Number.POSITIVE_INFINITY
     const end = new Date(endDate)
+    if (isNaN(end.getTime())) return Number.POSITIVE_INFINITY
     const now = new Date()
     const daysLeft = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
     return daysLeft

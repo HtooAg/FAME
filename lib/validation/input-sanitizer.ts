@@ -30,7 +30,9 @@ export class InputSanitizer {
 		};
 
 		// Sanitize HTML and potential XSS
-		let sanitized = DOMPurify.sanitize(input, purifyConfig);
+		const sanitizedRaw = DOMPurify.sanitize(input, purifyConfig) as unknown;
+		let sanitized: string =
+			typeof sanitizedRaw === "string" ? sanitizedRaw : String(sanitizedRaw);
 
 		// Normalize whitespace
 		sanitized = sanitized.replace(/\s+/g, " ").trim();

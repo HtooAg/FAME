@@ -78,7 +78,6 @@ async function createSuperAdmin() {
 			accountStatus: "active",
 			isActive: true,
 			createdAt: new Date().toISOString(),
-			lastLogin: null,
 			metadata: {
 				createdBy: "script",
 				createdAt: new Date().toISOString(),

@@ -23,57 +23,240 @@ import {
 	Headphones,
 	Music,
 	Play,
+	Pause,
 	SkipForward,
 	LogOut,
 	AlertTriangle,
 } from "lucide-react";
 import Image from "next/image";
 
-type Artist = {
+interface DJArtist {
 	id: string;
 	stageName: string;
 	style: string;
 	music: string[];
 	performanceOrder?: number;
-};
-type EmergencyActive = {
+}
+
+interface EmergencyCode {
 	code: "red" | "blue" | "green";
 	message: string;
-} | null;
+}
+
+type EmergencyActive = EmergencyCode | null;
+
+interface PlaylistTrack {
+	id: string;
+	title: string;
+	artist: string;
+	genre: string;
+	duration: string;
+	bpm: number;
+	url: string;
+}
+
+interface PerformanceSlot {
+	id: string;
+	artistId: string;
+	artistName: string;
+	style: string;
+	order: number;
+	status: "pending" | "active" | "completed";
+	performanceDate?: string;
+	duration: number;
+	musicTracks?: Array<{
+		id?: string;
+		song_title: string;
+		duration: number;
+		tempo?: number;
+		file_url: string;
+	}>;
+}
+
+type ShowStatus = "not_started" | "started" | "paused" | "completed";
 
 export default function DJDashboard() {
 	const { user, logout } = useAuth();
 	const eventId = user?.eventId;
-	const [artists, setArtists] = useState<Artist[]>([]);
+	const [artists, setArtists] = useState<DJArtist[]>([]);
 	const [emergency, setEmergency] = useState<EmergencyActive>(null);
-	const [playlist, setPlaylist] = useState<any[]>([]);
+	const [playlist, setPlaylist] = useState<PlaylistTrack[]>([]);
 	const [currentTrack, setCurrentTrack] = useState<string | null>(null);
+
+	const [wsConnected, setWsConnected] = useState<boolean>(false);
+	const [performanceOrder, setPerformanceOrder] = useState<PerformanceSlot[]>(
+		[]
+	);
+	const [showStatus, setShowStatus] = useState<ShowStatus>("not_started");
+	const [currentPerformanceId, setCurrentPerformanceId] = useState<
+		string | null
+	>(null);
 
 	useEffect(() => {
 		if (!eventId) return;
-		(async () => {
-			const [aRes, eRes, pRes] = await Promise.all([
-				fetch(`/api/events/${eventId}/artists`, { cache: "no-store" }),
+
+		fetchData();
+		initializeWebSocket();
+	}, [eventId]);
+
+	const fetchData = async () => {
+		try {
+			const [perfRes, eRes] = await Promise.all([
+				fetch(`/api/events/${eventId}/performance-order-gcs`, {
+					cache: "no-store",
+				}),
 				fetch(`/api/events/${eventId}/emergency?active=1`, {
 					cache: "no-store",
 				}),
-				fetch(`/api/events/${eventId}/playlist`, { cache: "no-store" }),
 			]);
-			if (aRes.ok) setArtists(await aRes.json());
+
+			if (perfRes.ok) {
+				const perfData = await perfRes.json();
+				if (perfData.success) {
+					setPerformanceOrder(perfData.data.performanceOrder || []);
+					setShowStatus(perfData.data.showStatus || "not_started");
+					setCurrentPerformanceId(
+						perfData.data.currentPerformanceId || null
+					);
+
+					// Extract playlist from performance order
+					const allTracks: PlaylistTrack[] =
+						perfData.data.performanceOrder.flatMap(
+							(slot: PerformanceSlot) =>
+								(slot.musicTracks || []).map((track) => ({
+									id:
+										track.id ||
+										`${slot.artistId}_${track.song_title}`,
+									title: track.song_title,
+									artist: slot.artistName,
+									genre: slot.style,
+									duration: formatDuration(track.duration),
+									bpm: track.tempo || 120,
+									url: track.file_url,
+								}))
+						);
+					setPlaylist(allTracks);
+				}
+			}
+
 			if (eRes.ok) setEmergency(await eRes.json());
-			if (pRes.ok) setPlaylist(await pRes.json());
-		})();
-	}, [eventId]);
+		} catch (error) {
+			console.error("Error fetching DJ dashboard data:", error);
+		}
+	};
+
+	const initializeWebSocket = () => {
+		try {
+			// First initialize the WebSocket server
+			fetch("/api/websocket").then(() => {
+				console.log("WebSocket server initialized for DJ dashboard");
+
+				// Then establish client connection
+				const ws = new WebSocket("ws://localhost:8080");
+
+				ws.onopen = () => {
+					console.log("DJ WebSocket connected");
+					setWsConnected(true);
+
+					// Subscribe to performance order updates for this event
+					ws.send(
+						JSON.stringify({
+							type: "subscribe",
+							channel: "artist_submissions",
+							eventId: eventId,
+						})
+					);
+				};
+
+				ws.onmessage = (event) => {
+					try {
+						const message = JSON.parse(event.data);
+						console.log("DJ WebSocket message received:", message);
+
+						if (message.type === "performance_order_updated") {
+							// Update performance order
+							setPerformanceOrder(
+								message.data.performanceOrder || []
+							);
+
+							// Update playlist from new performance order
+							const allTracks: PlaylistTrack[] =
+								message.data.performanceOrder.flatMap(
+									(slot: PerformanceSlot) =>
+										(slot.musicTracks || []).map(
+											(track) => ({
+												id:
+													track.id ||
+													`${slot.artistId}_${track.song_title}`,
+												title: track.song_title,
+												artist: slot.artistName,
+												genre: slot.style,
+												duration: formatDuration(
+													track.duration
+												),
+												bpm: track.tempo || 120,
+												url: track.file_url,
+											})
+										)
+								);
+							setPlaylist(allTracks);
+
+							console.log(
+								"DJ dashboard updated with new performance order"
+							);
+						} else if (message.type === "show_status_updated") {
+							// Update show status
+							setShowStatus(message.data.status);
+							setCurrentPerformanceId(
+								message.data.currentPerformanceId || null
+							);
+
+							console.log(
+								`DJ dashboard show status updated: ${message.data.status}`
+							);
+						}
+					} catch (error) {
+						console.error(
+							"Error parsing DJ WebSocket message:",
+							error
+						);
+					}
+				};
+
+				ws.onclose = () => {
+					console.log("DJ WebSocket disconnected");
+					setWsConnected(false);
+
+					// Attempt to reconnect after 3 seconds
+					setTimeout(() => {
+						console.log("Attempting to reconnect DJ WebSocket...");
+						initializeWebSocket();
+					}, 3000);
+				};
+
+				ws.onerror = (error) => {
+					console.error("DJ WebSocket error:", error);
+					setWsConnected(false);
+				};
+			});
+		} catch (error) {
+			console.error("Failed to initialize DJ WebSocket:", error);
+		}
+	};
+
+	const formatDuration = (seconds: number | null) => {
+		if (!seconds) return "0:00";
+		const mins = Math.floor(seconds / 60);
+		const secs = seconds % 60;
+		return `${mins}:${secs.toString().padStart(2, "0")}`;
+	};
 
 	const ordered = useMemo(
 		() =>
-			artists
+			performanceOrder
 				.slice()
-				.sort(
-					(a, b) =>
-						(a.performanceOrder || 0) - (b.performanceOrder || 0)
-				),
-		[artists]
+				.sort((a, b) => (a.order || 0) - (b.order || 0)),
+		[performanceOrder]
 	);
 
 	const getBPMColor = (bpm: number) => {
@@ -117,6 +300,30 @@ export default function DJDashboard() {
 									{emergency.message}
 								</Badge>
 							)}
+							<div className="flex items-center gap-2">
+								<div
+									className={`w-2 h-2 rounded-full ${
+										wsConnected
+											? "bg-green-500"
+											: "bg-red-500"
+									}`}
+								></div>
+								<span className="text-xs text-gray-500">
+									{wsConnected
+										? "Live sync active"
+										: "Connecting..."}
+								</span>
+							</div>
+							<Badge
+								variant={
+									showStatus === "started"
+										? "default"
+										: "secondary"
+								}
+							>
+								Show:{" "}
+								{showStatus.replace("_", " ").toUpperCase()}
+							</Badge>
 							<Button variant="outline" onClick={logout}>
 								<LogOut className="h-4 w-4 mr-2" />
 								Logout
@@ -151,7 +358,7 @@ export default function DJDashboard() {
 						</CardHeader>
 						<CardContent>
 							<div className="text-2xl font-bold">
-								{artists.length}
+								{performanceOrder.length}
 							</div>
 						</CardContent>
 					</Card>
@@ -205,26 +412,57 @@ export default function DJDashboard() {
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{ordered.map((a) => (
-										<TableRow key={a.id}>
+									{ordered.map((slot) => (
+										<TableRow
+											key={slot.id}
+											className={
+												currentPerformanceId === slot.id
+													? "bg-yellow-50 border-yellow-200"
+													: slot.status ===
+													  "completed"
+													? "bg-gray-50 opacity-60"
+													: ""
+											}
+										>
 											<TableCell className="font-bold">
-												#{a.performanceOrder}
+												#{slot.order}
+												{currentPerformanceId ===
+													slot.id && (
+													<Badge className="ml-2 bg-yellow-500">
+														LIVE
+													</Badge>
+												)}
 											</TableCell>
 											<TableCell className="font-medium">
-												{a.stageName}
+												{slot.artistName}
 											</TableCell>
-											<TableCell>{a.style}</TableCell>
+											<TableCell>{slot.style}</TableCell>
 											<TableCell>
-												{(a.music || []).join(", ")}
+												{(slot.musicTracks || [])
+													.map(
+														(track) =>
+															track.song_title
+													)
+													.join(", ") || "No tracks"}
 											</TableCell>
 											<TableCell className="space-x-2">
-												<Button size="sm">
+												<Button
+													size="sm"
+													disabled={
+														slot.status ===
+														"completed"
+													}
+												>
 													<Play className="h-4 w-4 mr-1" />
 													Cue
 												</Button>
 												<Button
 													size="sm"
 													variant="outline"
+													disabled={
+														slot.status ===
+														"completed"
+													}
 												>
 													<SkipForward className="h-4 w-4 mr-1" />
 													Next

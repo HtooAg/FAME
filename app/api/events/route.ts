@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readJsonFile, writeJsonFile, upsertArrayFile, paths } from "@/lib/gcs";
 import { Event } from "@/lib/types/event";
 import { eventFormSchema } from "@/lib/schemas/event";
+import { ApiResponse } from "@/lib/types/api";
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import { broadcastEventsUpdate } from "@/app/api/websocket/route";
@@ -24,13 +25,15 @@ async function getAuthenticatedUser(request: NextRequest) {
 }
 
 // GET /api/events - List events for the authenticated stage manager
-export async function GET(request: NextRequest) {
+export async function GET(
+	request: NextRequest
+): Promise<NextResponse<ApiResponse<Event[]>>> {
 	try {
 		const user = await getAuthenticatedUser(request);
 
 		// Only stage managers can access events
 		if (user.role !== "stage_manager") {
-			return NextResponse.json(
+			return NextResponse.json<ApiResponse>(
 				{
 					success: false,
 					error: {
@@ -43,7 +46,8 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Read all events and filter by stage manager
-		const allEvents = (await readJsonFile<Event[]>(paths.eventsIndex, [])) ?? [];
+		const allEvents =
+			(await readJsonFile<Event[]>(paths.eventsIndex, [])) ?? [];
 		console.log("All events:", allEvents); // Debug log
 		console.log(
 			"User ID from JWT:",
@@ -65,14 +69,13 @@ export async function GET(request: NextRequest) {
 			); // Debug log
 			return (
 				event.stageManagerId == user.userId ||
-				event.stageManagerId === user.userId.toString() ||
-				event.stageManagerId === parseInt(user.userId)
+				event.stageManagerId === user.userId.toString()
 			);
 		});
 
 		console.log("Filtered events for user:", stageManagerEvents); // Debug log
 
-		return NextResponse.json({
+		return NextResponse.json<ApiResponse<Event[]>>({
 			success: true,
 			data: stageManagerEvents,
 		});
@@ -82,7 +85,7 @@ export async function GET(request: NextRequest) {
 			"Error details:",
 			error instanceof Error ? error.message : String(error)
 		);
-		return NextResponse.json(
+		return NextResponse.json<ApiResponse>(
 			{
 				success: false,
 				error: {
@@ -98,13 +101,15 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/events - Create a new event
-export async function POST(request: NextRequest) {
+export async function POST(
+	request: NextRequest
+): Promise<NextResponse<ApiResponse<Event>>> {
 	try {
 		const user = await getAuthenticatedUser(request);
 
 		// Only stage managers can create events
 		if (user.role !== "stage_manager") {
-			return NextResponse.json(
+			return NextResponse.json<ApiResponse>(
 				{
 					success: false,
 					error: {
@@ -126,7 +131,7 @@ export async function POST(request: NextRequest) {
 		});
 
 		if (!validationResult.success) {
-			return NextResponse.json(
+			return NextResponse.json<ApiResponse>(
 				{
 					success: false,
 					error: {
@@ -169,7 +174,7 @@ export async function POST(request: NextRequest) {
 		// Broadcast the update to all connected clients
 		await broadcastEventsUpdate();
 
-		return NextResponse.json(
+		return NextResponse.json<ApiResponse<Event>>(
 			{
 				success: true,
 				data: newEvent,
@@ -182,7 +187,7 @@ export async function POST(request: NextRequest) {
 			"Error details:",
 			error instanceof Error ? error.message : String(error)
 		);
-		return NextResponse.json(
+		return NextResponse.json<ApiResponse>(
 			{
 				success: false,
 				error: {

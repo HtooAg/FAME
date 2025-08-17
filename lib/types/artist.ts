@@ -1,3 +1,14 @@
+export interface StatusHistoryEntry {
+	id: string;
+	previousStatus: string | null;
+	newStatus: string;
+	changedBy: string;
+	changedByName: string;
+	reason?: string;
+	timestamp: string;
+	metadata?: Record<string, any>;
+}
+
 export interface ArtistProfile {
 	id: string;
 	artistName: string;
@@ -10,10 +21,23 @@ export interface ArtistProfile {
 	biography: string;
 	eventId: string;
 	eventName: string;
-	status: "pending" | "approved" | "active" | "inactive";
+	status:
+		| "pending"
+		| "approved"
+		| "active"
+		| "inactive"
+		| "rejected"
+		| "withdrawn";
 	createdAt: string;
 	updatedAt?: string;
 	lastLogin?: string;
+
+	// Performance scheduling
+	performanceDate?: string;
+	performance_date?: string;
+
+	// Status history
+	statusHistory?: StatusHistoryEntry[];
 
 	// Technical requirements
 	costumeColor: string;

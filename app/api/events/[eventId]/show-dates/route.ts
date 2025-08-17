@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readJsonFile, writeJsonFile, upsertArrayFile, paths } from "@/lib/gcs";
 import { Event } from "@/lib/types/event";
+import { ApiResponse, EventPageParams } from "@/lib/types/api";
 import jwt from "jsonwebtoken";
 import { broadcastEventsUpdate } from "@/app/api/websocket/route";
 
@@ -24,14 +25,14 @@ async function getAuthenticatedUser(request: NextRequest) {
 // POST /api/events/[eventId]/show-dates - Save show dates for an event
 export async function POST(
 	request: NextRequest,
-	{ params }: { params: { eventId: string } }
-) {
+	{ params }: { params: EventPageParams }
+): Promise<NextResponse<ApiResponse<Event>>> {
 	try {
 		const user = await getAuthenticatedUser(request);
 
 		// Only stage managers can manage show dates
 		if (user.role !== "stage_manager") {
-			return NextResponse.json(
+			return NextResponse.json<ApiResponse>(
 				{
 					success: false,
 					error: {
@@ -48,7 +49,7 @@ export async function POST(
 
 		// Validate the request body
 		if (!body.dates || !Array.isArray(body.dates)) {
-			return NextResponse.json(
+			return NextResponse.json<ApiResponse>(
 				{
 					success: false,
 					error: {
@@ -61,10 +62,13 @@ export async function POST(
 		}
 
 		// Read the event to verify it exists and belongs to the user
-		const event = await readJsonFile<Event>(paths.eventFile(eventId), null);
+		const event = await readJsonFile<Event | null>(
+			paths.eventFile(eventId),
+			null
+		);
 
 		if (!event) {
-			return NextResponse.json(
+			return NextResponse.json<ApiResponse>(
 				{
 					success: false,
 					error: {
@@ -79,10 +83,9 @@ export async function POST(
 		// Check if the event belongs to the current stage manager
 		if (
 			event.stageManagerId != user.userId &&
-			event.stageManagerId !== user.userId.toString() &&
-			event.stageManagerId !== parseInt(user.userId)
+			event.stageManagerId !== user.userId.toString()
 		) {
-			return NextResponse.json(
+			return NextResponse.json<ApiResponse>(
 				{
 					success: false,
 					error: {
@@ -110,13 +113,13 @@ export async function POST(
 		// Broadcast the update to all connected clients
 		await broadcastEventsUpdate();
 
-		return NextResponse.json({
+		return NextResponse.json<ApiResponse<Event>>({
 			success: true,
 			data: updatedEvent,
 		});
 	} catch (error) {
 		console.error("Error saving show dates:", error);
-		return NextResponse.json(
+		return NextResponse.json<ApiResponse>(
 			{
 				success: false,
 				error: {

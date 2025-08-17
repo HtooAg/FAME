@@ -6,6 +6,8 @@ import {
 	broadcastArtistDeletion,
 } from "@/app/api/websocket/route";
 import { ArtistStatusService } from "@/lib/services/artist-status-service";
+import { statusCacheManager } from "@/lib/status-cache-manager";
+import { createCachedStatus } from "@/lib/cache-utils";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-do-not-use-in-prod";
@@ -77,8 +79,41 @@ export async function GET(
 			);
 		}
 
-		// Fetch artist data with proper media URLs
-		const artistData = await GCSService.getArtistData(artistId);
+		// Try to get artist data from cache first, fallback to storage
+		let artistData;
+		try {
+			// Initialize cache manager if not already done
+			await statusCacheManager.initialize(eventId);
+
+			// Try cache first for performance status
+			const cachedStatus = await statusCacheManager.getArtistStatus(
+				artistId,
+				eventId
+			);
+
+			// Get full artist data from storage
+			artistData = await GCSService.getArtistData(artistId);
+
+			// Merge cached status if available and more recent
+			if (cachedStatus && artistData) {
+				const cachedTime = new Date(cachedStatus.timestamp).getTime();
+				const storageTime = new Date(
+					artistData.updatedAt || 0
+				).getTime();
+
+				if (cachedTime > storageTime) {
+					// Use cached status data
+					artistData.performance_status =
+						cachedStatus.performance_status;
+					artistData.performance_order =
+						cachedStatus.performance_order;
+					artistData.performance_date = cachedStatus.performance_date;
+				}
+			}
+		} catch (cacheError) {
+			console.error("Cache error, falling back to storage:", cacheError);
+			artistData = await GCSService.getArtistData(artistId);
+		}
 
 		if (!artistData) {
 			return NextResponse.json<ApiResponse<null>>(
@@ -191,8 +226,93 @@ export async function PATCH(
 			updatedAt: new Date().toISOString(),
 		};
 
+		console.log(
+			`Saving artist data for ${artistId} with performance fields:`,
+			{
+				performance_order: updatedData.performance_order,
+				performance_status: updatedData.performance_status,
+				performance_date:
+					updatedData.performance_date || updatedData.performanceDate,
+			}
+		);
+
 		// Save updated data
 		await GCSService.saveArtistData(updatedData);
+
+		// If performance-related fields are being updated, use caching layer
+		if (
+			updates.performance_status !== undefined ||
+			updates.performance_order !== undefined ||
+			updates.performance_date !== undefined ||
+			updates.performanceDate !== undefined
+		) {
+			console.log(`Updating performance data for artist ${artistId}:`, {
+				performance_status: updates.performance_status,
+				performance_order: updates.performance_order,
+				performance_date:
+					updates.performance_date || updates.performanceDate,
+			});
+
+			try {
+				// Initialize cache manager if not already done
+				await statusCacheManager.initialize(eventId);
+
+				// Get user info for tracking
+				const user = getUserFromRequest(request);
+
+				// Update via cache manager (optimistic update + background sync)
+				const cacheUpdates = {
+					performance_status: updates.performance_status,
+					performance_order: updates.performance_order,
+					performance_date:
+						updates.performance_date || updates.performanceDate,
+					eventId,
+					artistId,
+					timestamp: new Date().toISOString(),
+					version: 1,
+					dirty: true,
+				};
+
+				const resolution = await statusCacheManager.updateArtistStatus(
+					artistId,
+					eventId,
+					cacheUpdates,
+					user?.userId
+				);
+
+				if (resolution) {
+					console.log(
+						`Successfully updated performance data via cache for artist ${artistId}`
+					);
+
+					// Update the local data with cached values for immediate response
+					updatedData.performance_status =
+						resolution.resolved.performance_status;
+					updatedData.performance_order =
+						resolution.resolved.performance_order;
+					updatedData.performance_date =
+						resolution.resolved.performance_date;
+				}
+
+				// Also update via the traditional method as fallback
+				await GCSService.updateArtistPerformanceStatus(
+					artistId,
+					eventId,
+					{
+						performance_status: updates.performance_status,
+						performance_order: updates.performance_order,
+						performance_date:
+							updates.performance_date || updates.performanceDate,
+					}
+				);
+			} catch (error) {
+				console.error(
+					`Failed to update performance data for artist ${artistId}:`,
+					error
+				);
+				// Don't fail the whole request, but log the error
+			}
+		}
 
 		// Return updated data with fresh media URLs
 		const refreshedData = await GCSService.getArtistData(artistId);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
+import { broadcastPerformanceOrderUpdate } from "@/app/api/websocket/route";
 
 const PERFORMANCE_ORDER_FILE = join(
 	process.cwd(),
@@ -102,6 +103,24 @@ export async function POST(
 		}
 
 		savePerformanceOrders(orders);
+
+		// Broadcast the performance order update to all connected users
+		try {
+			await broadcastPerformanceOrderUpdate(
+				eventId,
+				newOrder.performanceOrder,
+				newOrder.showStartTime
+			);
+			console.log(
+				`Broadcasted performance order update for event ${eventId}`
+			);
+		} catch (error) {
+			console.error(
+				"Error broadcasting performance order update:",
+				error
+			);
+			// Don't fail the request if broadcasting fails
+		}
 
 		return NextResponse.json({
 			message: "Performance order saved successfully",

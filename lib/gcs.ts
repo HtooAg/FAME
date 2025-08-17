@@ -31,6 +31,11 @@ export const paths = {
 	artistsIndex: (eventId: string) => `events/${eventId}/artists/index.json`,
 	stageManagerFile: (stageManagerId: string) =>
 		`stage-managers/${stageManagerId}.json`,
+	// Emergency paths used by API routes
+	emergencyActive: (eventId: string) => `events/${eventId}/emergency/active.json`,
+	emergencyLogDir: (eventId: string) => `events/${eventId}/emergency/logs`,
+	emergencyLogFile: (eventId: string, id: string) =>
+		`events/${eventId}/emergency/logs/${id}.json`,
 };
 
 export class GCSManager {
@@ -140,7 +145,10 @@ export const gcsManager = new GCSManager();
  */
 // Overloads ensure non-nullable return when a non-null default is provided
 export async function readJsonFile<T>(path: string): Promise<T | null>;
-export async function readJsonFile<T>(path: string, defaultValue: T): Promise<T>;
+export async function readJsonFile<T>(
+	path: string,
+	defaultValue: T
+): Promise<T>;
 export async function readJsonFile<T>(
 	path: string,
 	defaultValue: T | null = null
@@ -334,7 +342,10 @@ export function createArtistDataStructure(artistData: any) {
 						(file: any, index: number) => ({
 							name: file.name,
 							type: file.type,
-							file_path: `artists/${artistId}/gallery/${index}_${file.name}`,
+							file_path:
+								file.type === "video"
+									? `artists/${artistId}/videos/${file.name}`
+									: `artists/${artistId}/images/${file.name}`,
 						})
 					) || [],
 			},

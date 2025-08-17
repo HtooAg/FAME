@@ -1,14 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Storage } from "@google-cloud/storage";
-import { WebSocketManager } from "@/lib/websocket-manager";
-
-const storage = new Storage({
-	projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-	keyFilename: process.env.GOOGLE_CLOUD_KEY_FILE,
-});
-
-const bucketName =
-	process.env.GOOGLE_CLOUD_STORAGE_BUCKET || "fame-event-storage";
+import { GCSService } from "@/lib/google-cloud-storage";
 
 export async function GET(
 	request: NextRequest,
@@ -16,35 +7,36 @@ export async function GET(
 ) {
 	try {
 		const { eventId } = params;
-		const bucket = storage.bucket(bucketName);
 
-		// Get emergency broadcasts data from GCS
-		const fileName = `${eventId}/data/emergency-broadcasts.json`;
-		const file = bucket.file(fileName);
+		// Download emergency broadcasts from GCS
+		const fileName = `events/${eventId}/emergency-broadcasts/broadcasts.json`;
 
 		try {
-			const [exists] = await file.exists();
-			if (!exists) {
-				return NextResponse.json({ broadcasts: [] });
-			}
-
-			const [contents] = await file.download();
-			const allBroadcasts = JSON.parse(contents.toString());
+			const broadcasts = await GCSService.readJSON(fileName);
 
 			// Filter only active broadcasts
-			const broadcasts = allBroadcasts.filter(
-				(broadcast: any) => broadcast.isActive
+			const activeBroadcasts = broadcasts.filter(
+				(broadcast: any) => broadcast.is_active
 			);
 
-			return NextResponse.json({ broadcasts });
+			return NextResponse.json({
+				success: true,
+				data: activeBroadcasts,
+			});
 		} catch (error) {
-			// File doesn't exist, return empty array
-			return NextResponse.json({ broadcasts: [] });
+			// If file doesn't exist, return empty array
+			return NextResponse.json({
+				success: true,
+				data: [],
+			});
 		}
 	} catch (error) {
 		console.error("Error fetching emergency broadcasts:", error);
 		return NextResponse.json(
-			{ error: "Failed to fetch emergency broadcasts" },
+			{
+				success: false,
+				error: "Failed to fetch emergency broadcasts",
+			},
 			{ status: 500 }
 		);
 	}
@@ -56,54 +48,76 @@ export async function POST(
 ) {
 	try {
 		const { eventId } = params;
-		const broadcastData = await request.json();
+		const body = await request.json();
+		const { message, emergency_code, is_active = true } = body;
 
-		const bucket = storage.bucket(bucketName);
-		const fileName = `${eventId}/data/emergency-broadcasts.json`;
-		const file = bucket.file(fileName);
-
-		// Get existing broadcasts
-		let broadcasts = [];
-		try {
-			const [exists] = await file.exists();
-			if (exists) {
-				const [contents] = await file.download();
-				broadcasts = JSON.parse(contents.toString());
-			}
-		} catch (error) {
-			// File doesn't exist, start with empty array
+		if (!message || !emergency_code) {
+			return NextResponse.json(
+				{
+					success: false,
+					error: "Message and emergency code are required",
+				},
+				{ status: 400 }
+			);
 		}
 
-		// Add new broadcast with ID and timestamps
+		// Create new broadcast
 		const newBroadcast = {
 			id: `broadcast_${Date.now()}_${Math.random()
 				.toString(36)
 				.substr(2, 9)}`,
-			...broadcastData,
-			isActive: true,
-			createdAt: new Date().toISOString(),
+			message,
+			emergency_code,
+			is_active,
+			created_at: new Date().toISOString(),
 		};
 
+		// Download existing broadcasts
+		const fileName = `events/${eventId}/emergency-broadcasts/broadcasts.json`;
+		let broadcasts = [];
+
+		try {
+			broadcasts = (await GCSService.readJSON(fileName)) || [];
+		} catch (error) {
+			// File doesn't exist, start with empty array
+			broadcasts = [];
+		}
+
+		// Add new broadcast
 		broadcasts.push(newBroadcast);
 
-		// Save back to GCS
-		await file.save(JSON.stringify(broadcasts, null, 2), {
-			metadata: {
-				contentType: "application/json",
-			},
-		});
+		// Upload updated broadcasts to GCS
+		await GCSService.saveJSON(broadcasts, fileName);
 
-		// Broadcast update via WebSocket
-		WebSocketManager.broadcast(eventId, {
-			type: "EMERGENCY_BROADCAST",
+		// Broadcast to all connected dashboards via SSE
+		try {
+			const { broadcastToAllClients } = await import(
+				"@/app/api/events/[eventId]/live-updates/route"
+			);
+			broadcastToAllClients({
+				type: "emergency-alert",
+				data: newBroadcast,
+				eventId,
+				timestamp: new Date().toISOString(),
+			});
+		} catch (error) {
+			console.error(
+				"Failed to broadcast emergency alert via SSE:",
+				error
+			);
+		}
+
+		return NextResponse.json({
+			success: true,
 			data: newBroadcast,
 		});
-
-		return NextResponse.json({ success: true, broadcast: newBroadcast });
 	} catch (error) {
 		console.error("Error creating emergency broadcast:", error);
 		return NextResponse.json(
-			{ error: "Failed to create emergency broadcast" },
+			{
+				success: false,
+				error: "Failed to create emergency broadcast",
+			},
 			{ status: 500 }
 		);
 	}

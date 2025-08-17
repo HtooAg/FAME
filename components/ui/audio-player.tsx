@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+// Removed ReactPlayer to fix AbortError issues
+
 import {
 	Play,
 	Pause,
@@ -10,7 +12,6 @@ import {
 	AlertCircle,
 	RefreshCw,
 	Download,
-	ExternalLink,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -44,6 +45,7 @@ export function AudioPlayer({
 	const [currentTime, setCurrentTime] = useState(0);
 	const [duration, setDuration] = useState(0);
 	const [networkError, setNetworkError] = useState(false);
+	const [currentUrl, setCurrentUrl] = useState(track.file_url);
 	const audioRef = useRef<HTMLAudioElement>(null);
 	const { toast } = useToast();
 	const { error, retryCount, handleError, retry, clearError } =
@@ -68,7 +70,8 @@ export function AudioPlayer({
 	// Refresh the audio URL if it's a blob URL
 	const refreshAudioUrl = async () => {
 		if (!track.file_path) {
-			const errorMsg = "No file path available to refresh URL";
+			const errorMsg =
+				"Audio file is not properly stored in cloud storage. Please re-upload the file.";
 			handleError(errorMsg);
 			onError?.(errorMsg);
 			return null;
@@ -83,10 +86,12 @@ export function AudioPlayer({
 			});
 
 			if (!response.ok) {
-				throw new Error(`HTTP ${response.status}`);
+				const errorData = await response.json().catch(() => ({}));
+				throw new Error(errorData.error || `HTTP ${response.status}`);
 			}
 
 			const { signedUrl } = await response.json();
+			setCurrentUrl(signedUrl);
 			return signedUrl;
 		} catch (error: any) {
 			const errorMsg = `Failed to refresh audio URL: ${error.message}`;
@@ -99,20 +104,18 @@ export function AudioPlayer({
 	};
 
 	const handlePlay = async () => {
-		if (!audioRef.current) return;
-
-		// Check if we need to refresh the URL
-		if (isBlobUrl(track.file_url)) {
-			const newUrl = await refreshAudioUrl();
-			if (!newUrl) return;
-
-			audioRef.current.src = newUrl;
-		}
-
 		try {
-			clearError();
-			await audioRef.current.play();
-			setIsPlaying(true);
+			// Check if we need to refresh the URL
+			if (isBlobUrl(currentUrl)) {
+				const newUrl = await refreshAudioUrl();
+				if (!newUrl) return;
+			}
+
+			if (audioRef.current) {
+				clearError();
+				await audioRef.current.play();
+				setIsPlaying(true);
+			}
 		} catch (error: any) {
 			const errorMsg = `Failed to play audio: ${error.message}`;
 			handleError(errorMsg);
@@ -128,7 +131,9 @@ export function AudioPlayer({
 		}
 	};
 
-	const handleAudioError = async (event?: Event) => {
+	const handleAudioError = async (
+		event?: React.SyntheticEvent<HTMLAudioElement, Event>
+	) => {
 		console.error("Audio error occurred", event);
 		setIsPlaying(false);
 		setIsLoading(false);
@@ -136,34 +141,44 @@ export function AudioPlayer({
 		// Determine error type
 		let errorMessage = "Audio file could not be played";
 
-		if (event && audioRef.current) {
-			const audio = audioRef.current;
-			switch (audio.error?.code) {
-				case MediaError.MEDIA_ERR_ABORTED:
+		// HTML5 audio error handling
+		if (audioRef.current?.error) {
+			const error = audioRef.current.error;
+			switch (error.code) {
+				case error.MEDIA_ERR_ABORTED:
 					errorMessage = "Audio playback was aborted";
 					break;
-				case MediaError.MEDIA_ERR_NETWORK:
+				case error.MEDIA_ERR_NETWORK:
 					errorMessage = "Network error while loading audio";
 					setNetworkError(true);
 					break;
-				case MediaError.MEDIA_ERR_DECODE:
-					errorMessage =
-						"Audio file is corrupted or in an unsupported format";
+				case error.MEDIA_ERR_DECODE:
+					errorMessage = "Audio file format not supported";
 					break;
-				case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-					errorMessage = "Audio format not supported by your browser";
+				case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+					errorMessage = "Audio source not supported";
 					break;
 				default:
-					errorMessage = "Unknown audio playback error";
+					errorMessage = "Unknown audio error occurred";
+			}
+		}
+
+		// Check if it's a blob URL error
+		if (currentUrl && currentUrl.startsWith("blob:")) {
+			if (!track.file_path) {
+				errorMessage =
+					"Audio file is not properly stored in cloud storage. Please re-upload the file.";
+			} else {
+				errorMessage =
+					"Audio file reference expired. Attempting to refresh...";
 			}
 		}
 
 		// Try to refresh the URL if it's a blob URL and this is the first error
-		if (isBlobUrl(track.file_url) && track.file_path && retryCount === 0) {
+		if (isBlobUrl(currentUrl) && track.file_path && retryCount === 0) {
 			setIsLoading(true);
 			const newUrl = await refreshAudioUrl();
-			if (newUrl && audioRef.current) {
-				audioRef.current.src = newUrl;
+			if (newUrl) {
 				setIsLoading(false);
 				return; // Don't set error, let user try again
 			}
@@ -174,43 +189,15 @@ export function AudioPlayer({
 		onError?.(errorMessage);
 	};
 
-	const handleTimeUpdate = () => {
-		if (audioRef.current) {
-			setCurrentTime(audioRef.current.currentTime);
-		}
-	};
-
-	const handleLoadedMetadata = () => {
-		if (audioRef.current) {
-			setDuration(audioRef.current.duration);
-		}
-	};
-
-	const handleEnded = () => {
-		setIsPlaying(false);
-		setCurrentTime(0);
-	};
-
-	// Adapter to satisfy React's event handler typing (expects ReactEventHandler returning void)
-	const onAudioElementError: React.ReactEventHandler<HTMLAudioElement> = (e) => {
-		// Bridge SyntheticEvent to our async handler using nativeEvent
-		void handleAudioError(e.nativeEvent as Event);
-	};
-
 	const handleRetry = async () => {
 		clearError();
 		setNetworkError(false);
 		setIsLoading(true);
 
 		try {
-			if (isBlobUrl(track.file_url) && track.file_path) {
-				const newUrl = await refreshAudioUrl();
-				if (newUrl && audioRef.current) {
-					audioRef.current.src = newUrl;
-				}
-			} else if (audioRef.current) {
-				// Force reload the audio element
-				audioRef.current.load();
+			if (isBlobUrl(currentUrl) && track.file_path) {
+				await refreshAudioUrl();
+				// Audio element will automatically reload with the new URL
 			}
 		} catch (err) {
 			handleError("Failed to retry audio loading");
@@ -222,9 +209,9 @@ export function AudioPlayer({
 	};
 
 	const handleDownload = () => {
-		if (track.file_url && !isBlobUrl(track.file_url)) {
+		if (currentUrl && !isBlobUrl(currentUrl)) {
 			const link = document.createElement("a");
-			link.href = track.file_url;
+			link.href = currentUrl;
 			link.download = track.song_title || "audio-track";
 			document.body.appendChild(link);
 			link.click();
@@ -238,13 +225,48 @@ export function AudioPlayer({
 		}
 	};
 
+	// Handle audio events
+	const handleLoadedMetadata = () => {
+		if (audioRef.current) {
+			setDuration(audioRef.current.duration);
+		}
+	};
+
+	const handleTimeUpdate = () => {
+		if (audioRef.current) {
+			setCurrentTime(audioRef.current.currentTime);
+		}
+	};
+
+	const handleEnded = () => {
+		setIsPlaying(false);
+		setCurrentTime(0);
+	};
+
+	const handleLoadStart = () => {
+		setIsLoading(true);
+	};
+
+	const handleCanPlay = () => {
+		setIsLoading(false);
+		clearError();
+	};
+
 	useEffect(() => {
 		// Reset state when track changes
 		setIsPlaying(false);
 		clearError();
 		setCurrentTime(0);
 		setDuration(0);
+		setCurrentUrl(track.file_url);
 	}, [track.file_url, track.song_title]);
+
+	// Auto-refresh blob URLs on component mount
+	useEffect(() => {
+		if (isBlobUrl(track.file_url) && track.file_path) {
+			refreshAudioUrl();
+		}
+	}, [track.file_path]);
 
 	return (
 		<MediaErrorBoundary
@@ -362,17 +384,22 @@ export function AudioPlayer({
 					</div>
 				)}
 
-				{/* Hidden audio element */}
+				{/* Native HTML5 Audio Element */}
 				<audio
 					ref={audioRef}
 					src={
-						!isBlobUrl(track.file_url) ? track.file_url : undefined
+						currentUrl && !isBlobUrl(currentUrl)
+							? currentUrl
+							: undefined
 					}
-					onError={onAudioElementError}
-					onTimeUpdate={handleTimeUpdate}
 					onLoadedMetadata={handleLoadedMetadata}
+					onTimeUpdate={handleTimeUpdate}
 					onEnded={handleEnded}
+					onError={handleAudioError}
+					onLoadStart={handleLoadStart}
+					onCanPlay={handleCanPlay}
 					preload="metadata"
+					className="hidden"
 				/>
 			</div>
 		</MediaErrorBoundary>

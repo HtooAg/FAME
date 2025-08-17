@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readJsonFile, writeJsonFile, upsertArrayFile, paths } from "@/lib/gcs";
 import { Event } from "@/lib/types/event";
 import { eventFormSchema } from "@/lib/schemas/event";
+import { ApiResponse, EventPageParams } from "@/lib/types/api";
 import jwt from "jsonwebtoken";
 import { broadcastEventsUpdate } from "@/app/api/websocket/route";
 
@@ -25,8 +26,8 @@ async function getAuthenticatedUser(request: NextRequest) {
 // PUT /api/events/[eventId]/edit - Update a specific event
 export async function PUT(
 	request: NextRequest,
-	{ params }: { params: { eventId: string } }
-) {
+	{ params }: { params: EventPageParams }
+): Promise<NextResponse<ApiResponse<Event>>> {
 	try {
 		console.log("Updating event:", params.eventId);
 		const user = await getAuthenticatedUser(request);
@@ -34,7 +35,7 @@ export async function PUT(
 
 		// Only stage managers can edit events
 		if (user.role !== "stage_manager") {
-			return NextResponse.json(
+			return NextResponse.json<ApiResponse>(
 				{
 					success: false,
 					error: {
@@ -57,7 +58,7 @@ export async function PUT(
 		});
 
 		if (!validationResult.success) {
-			return NextResponse.json(
+			return NextResponse.json<ApiResponse>(
 				{
 					success: false,
 					error: {
@@ -72,10 +73,13 @@ export async function PUT(
 
 		// Read the existing event
 		const eventFilePath = paths.eventFile(eventId);
-		const existingEvent = await readJsonFile<Event>(eventFilePath, null);
+		const existingEvent = await readJsonFile<Event | null>(
+			eventFilePath,
+			null
+		);
 
 		if (!existingEvent) {
-			return NextResponse.json(
+			return NextResponse.json<ApiResponse>(
 				{
 					success: false,
 					error: {
@@ -90,10 +94,9 @@ export async function PUT(
 		// Check if the event belongs to the current stage manager
 		if (
 			existingEvent.stageManagerId != user.userId &&
-			existingEvent.stageManagerId !== user.userId.toString() &&
-			existingEvent.stageManagerId !== parseInt(user.userId)
+			existingEvent.stageManagerId !== user.userId.toString()
 		) {
-			return NextResponse.json(
+			return NextResponse.json<ApiResponse>(
 				{
 					success: false,
 					error: {
@@ -129,7 +132,7 @@ export async function PUT(
 		await broadcastEventsUpdate();
 
 		console.log("Event updated successfully");
-		return NextResponse.json({
+		return NextResponse.json<ApiResponse<Event>>({
 			success: true,
 			data: updatedEvent,
 		});
@@ -139,7 +142,7 @@ export async function PUT(
 			"Error details:",
 			error instanceof Error ? error.message : String(error)
 		);
-		return NextResponse.json(
+		return NextResponse.json<ApiResponse>(
 			{
 				success: false,
 				error: {

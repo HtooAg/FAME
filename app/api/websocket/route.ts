@@ -23,18 +23,58 @@ function verifyToken(token: string) {
 
 // Initialize WebSocket server if not already created
 function initWebSocketServer() {
-	if (wss) return wss;
+	if (wss) {
+		console.log(
+			"WebSocket server already exists, reusing existing instance"
+		);
+		return wss;
+	}
 
-	wss = new WebSocketServer({
-		port: 8080,
-		verifyClient: () => {
-			// Allow all connections, we'll authenticate after connection
-			return true;
-		},
-	});
+	// Try different ports if 8080 is in use
+	const ports = [8080, 8081, 8082, 8083, 8084];
+	let serverCreated = false;
+	let lastError: Error | null = null;
+
+	for (const port of ports) {
+		try {
+			wss = new WebSocketServer({
+				port: port,
+				perMessageDeflate: false, // Disable compression to avoid buffer issues
+				verifyClient: () => {
+					// Allow all connections, we'll authenticate after connection
+					return true;
+				},
+			});
+
+			console.log(
+				`WebSocket server created successfully on port ${port}`
+			);
+			serverCreated = true;
+			break;
+		} catch (error) {
+			lastError = error as Error;
+			console.log(`Port ${port} is in use, trying next port...`);
+			continue;
+		}
+	}
+
+	if (!serverCreated || !wss) {
+		console.error(
+			"Failed to create WebSocket server on any available port:",
+			lastError
+		);
+		return null;
+	}
 
 	wss.on("connection", (ws, request) => {
 		console.log("New WebSocket connection");
+
+		// Set up error handling for this connection
+		ws.on("error", (error) => {
+			console.error("WebSocket connection error:", error);
+			// Clean up the connection
+			authenticatedConnections.delete(ws);
+		});
 
 		// Attempt cookie-based authentication immediately on connect
 		try {
@@ -179,6 +219,67 @@ function initWebSocketServer() {
 							`User ${user.userId} unsubscribed from artist submissions for event ${data.eventId}`
 						);
 					}
+				} else if (
+					data.type === "subscribe" &&
+					data.channel?.startsWith("live-board-")
+				) {
+					// Subscribe to live board updates for specific event
+					const user = authenticatedConnections.get(ws);
+					if (
+						user &&
+						(user.role === "stage_manager" ||
+							user.role === "super_admin")
+					) {
+						const eventId = data.channel.replace("live-board-", "");
+
+						if (!(ws as any).liveBoardSubscriptions) {
+							(ws as any).liveBoardSubscriptions = new Set();
+						}
+						(ws as any).liveBoardSubscriptions.add(eventId);
+
+						ws.send(
+							JSON.stringify({
+								type: "subscription_confirmed",
+								channel: data.channel,
+								eventId: eventId,
+								timestamp: new Date().toISOString(),
+							})
+						);
+
+						console.log(
+							`User ${user.userId} subscribed to live board for event ${eventId}`
+						);
+					}
+				} else if (data.type === "live-board-update") {
+					// Broadcast live board update to all subscribed users
+					const user = authenticatedConnections.get(ws);
+					if (
+						user &&
+						(user.role === "stage_manager" ||
+							user.role === "super_admin")
+					) {
+						broadcastLiveBoardUpdate(data.eventId, data.data);
+					}
+				} else if (data.type === "emergency-alert") {
+					// Broadcast emergency alert to all users
+					const user = authenticatedConnections.get(ws);
+					if (
+						user &&
+						(user.role === "stage_manager" ||
+							user.role === "super_admin")
+					) {
+						broadcastEmergencyAlert(data.eventId, data.data);
+					}
+				} else if (data.type === "emergency-clear") {
+					// Broadcast emergency clear to all users
+					const user = authenticatedConnections.get(ws);
+					if (
+						user &&
+						(user.role === "stage_manager" ||
+							user.role === "super_admin")
+					) {
+						broadcastEmergencyClear(data.eventId, data.broadcastId);
+					}
 				}
 			} catch (error) {
 				console.error("WebSocket message error:", error);
@@ -196,7 +297,18 @@ function initWebSocketServer() {
 		});
 	});
 
-	console.log("WebSocket server started on port 8080");
+	// Add error handling for the server
+	if (wss) {
+		wss.on("error", (error) => {
+			console.error("WebSocket server error:", error);
+			if ((error as any).code === "EADDRINUSE") {
+				console.log(
+					"Port is already in use, server will attempt to use existing connection"
+				);
+			}
+		});
+	}
+
 	return wss;
 }
 
@@ -344,15 +456,202 @@ export async function broadcastArtistDeletion(
 	await broadcastArtistUpdate(eventId, artistData, "artist_deleted");
 }
 
+// Broadcast performance order update to all connected users for an event
+export async function broadcastPerformanceOrderUpdate(
+	eventId: string,
+	performanceOrder: any[],
+	showStartTime?: string
+) {
+	if (!wss) return;
+
+	console.log(`Broadcasting performance order update for event ${eventId}`);
+
+	for (const [ws, user] of authenticatedConnections.entries()) {
+		if (
+			ws.readyState === ws.OPEN &&
+			(user?.role === "stage_manager" ||
+				user?.role === "super_admin" ||
+				user?.role === "dj" ||
+				user?.role === "mc") &&
+			(ws as any).eventSubscriptions?.has(eventId)
+		) {
+			try {
+				ws.send(
+					JSON.stringify({
+						type: "performance_order_updated",
+						data: {
+							performanceOrder,
+							showStartTime,
+							eventId,
+						},
+						eventId,
+						timestamp: new Date().toISOString(),
+					})
+				);
+
+				console.log(
+					`Sent performance order update to ${user.role} user ${user.userId}`
+				);
+			} catch (e) {
+				console.error(
+					"Error broadcasting performance order update:",
+					e
+				);
+			}
+		}
+	}
+}
+
+// Broadcast show status update (started, paused, etc.)
+export async function broadcastShowStatusUpdate(
+	eventId: string,
+	status: "started" | "paused" | "stopped" | "intermission",
+	currentPerformanceId?: string,
+	nextPerformanceId?: string
+) {
+	if (!wss) return;
+
+	console.log(
+		`Broadcasting show status update for event ${eventId}: ${status}`
+	);
+
+	for (const [ws, user] of authenticatedConnections.entries()) {
+		if (
+			ws.readyState === ws.OPEN &&
+			(user?.role === "stage_manager" ||
+				user?.role === "super_admin" ||
+				user?.role === "dj" ||
+				user?.role === "mc") &&
+			(ws as any).eventSubscriptions?.has(eventId)
+		) {
+			try {
+				ws.send(
+					JSON.stringify({
+						type: "show_status_updated",
+						data: {
+							status,
+							currentPerformanceId,
+							nextPerformanceId,
+							eventId,
+						},
+						eventId,
+						timestamp: new Date().toISOString(),
+					})
+				);
+
+				console.log(
+					`Sent show status update to ${user.role} user ${user.userId}`
+				);
+			} catch (e) {
+				console.error("Error broadcasting show status update:", e);
+			}
+		}
+	}
+}
+
+// Broadcast live board update to all subscribed users
+export async function broadcastLiveBoardUpdate(eventId: string, data: any) {
+	if (!wss) return;
+
+	console.log(`Broadcasting live board update for event ${eventId}`);
+
+	for (const [ws, user] of authenticatedConnections.entries()) {
+		if (
+			ws.readyState === ws.OPEN &&
+			(user?.role === "stage_manager" || user?.role === "super_admin") &&
+			(ws as any).liveBoardSubscriptions?.has(eventId)
+		) {
+			try {
+				ws.send(
+					JSON.stringify({
+						type: "live-board-update",
+						data,
+						eventId,
+						timestamp: new Date().toISOString(),
+					})
+				);
+
+				console.log(`Sent live board update to user ${user.userId}`);
+			} catch (e) {
+				console.error("Error broadcasting live board update:", e);
+			}
+		}
+	}
+}
+
+// Broadcast emergency alert to all users
+export async function broadcastEmergencyAlert(eventId: string, data: any) {
+	if (!wss) return;
+
+	console.log(`Broadcasting emergency alert for event ${eventId}`);
+
+	// Send to all authenticated users (not just subscribed ones for emergency alerts)
+	for (const [ws, user] of authenticatedConnections.entries()) {
+		if (ws.readyState === ws.OPEN) {
+			try {
+				ws.send(
+					JSON.stringify({
+						type: "emergency-alert",
+						data,
+						eventId,
+						timestamp: new Date().toISOString(),
+					})
+				);
+
+				console.log(`Sent emergency alert to user ${user.userId}`);
+			} catch (e) {
+				console.error("Error broadcasting emergency alert:", e);
+			}
+		}
+	}
+}
+
+// Broadcast emergency clear to all users
+export async function broadcastEmergencyClear(
+	eventId: string,
+	broadcastId: string
+) {
+	if (!wss) return;
+
+	console.log(`Broadcasting emergency clear for event ${eventId}`);
+
+	// Send to all authenticated users
+	for (const [ws, user] of authenticatedConnections.entries()) {
+		if (ws.readyState === ws.OPEN) {
+			try {
+				ws.send(
+					JSON.stringify({
+						type: "emergency-clear",
+						broadcastId,
+						eventId,
+						timestamp: new Date().toISOString(),
+					})
+				);
+
+				console.log(`Sent emergency clear to user ${user.userId}`);
+			} catch (e) {
+				console.error("Error broadcasting emergency clear:", e);
+			}
+		}
+	}
+}
+
 // API endpoint to initialize WebSocket server
 export async function GET(request: NextRequest) {
 	try {
-		initWebSocketServer();
+		const server = initWebSocketServer();
+		if (!server) {
+			throw new Error("Failed to create WebSocket server");
+		}
+
+		// Get the actual port the server is listening on
+		const actualPort = (server as any).options?.port || 8080;
+
 		return new Response(
 			JSON.stringify({
 				success: true,
 				message: "WebSocket server initialized",
-				port: 8080,
+				port: actualPort,
 			}),
 			{
 				headers: { "Content-Type": "application/json" },
@@ -364,6 +663,8 @@ export async function GET(request: NextRequest) {
 			JSON.stringify({
 				success: false,
 				error: "Failed to initialize WebSocket server",
+				details:
+					error instanceof Error ? error.message : "Unknown error",
 			}),
 			{
 				status: 500,

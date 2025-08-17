@@ -9,6 +9,7 @@ export interface ApiResponse<T> {
 		message: string;
 		code?: string;
 	};
+	message?: string;
 	timestamp: string;
 }
 
@@ -51,8 +52,33 @@ export async function GET(
 				.filter((id): id is string => !!id);
 
 			if (artistIds.length > 0) {
-				// Use batch fetching for better performance
-				artists = await GCSService.batchGetArtistData(artistIds);
+				// Use individual fetching for debugging to ensure all fields are loaded
+				console.log(
+					`Loading ${artistIds.length} artists individually for debugging...`
+				);
+				artists = await Promise.all(
+					artistIds.map(async (artistId) => {
+						const artistData = await GCSService.getArtistData(
+							artistId
+						);
+						console.log(
+							`🔍 Artists API - Loaded artist ${artistId}:`,
+							{
+								performance_order:
+									artistData?.performance_order,
+								performance_status:
+									artistData?.performance_status,
+								performance_date:
+									artistData?.performance_date ||
+									artistData?.performanceDate,
+								rehearsal_completed:
+									artistData?.rehearsal_completed,
+							}
+						);
+						return artistData;
+					})
+				);
+				artists = artists.filter((artist) => artist !== null);
 			}
 		} catch (error) {
 			console.error("Error fetching artists from GCS:", error);
@@ -198,19 +224,20 @@ export async function POST(
 			);
 		}
 
-		// Generate artist ID
+		// Generate unique artist ID
 		const artistId = `artist_${Date.now()}_${Math.random()
 			.toString(36)
 			.substr(2, 9)}`;
 
-		// Prepare complete artist data
+		// Create complete artist profile
 		const completeArtistData = {
 			id: artistId,
 			eventId,
-			...artistData,
-			status: "pending",
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
+			status: "pending",
+			statusHistory: [],
+			...artistData,
 		};
 
 		// Save artist data to GCS
@@ -219,13 +246,14 @@ export async function POST(
 		// Get the saved data with proper media URLs
 		const savedArtist = await GCSService.getArtistData(artistId);
 
-		// Broadcast artist registration to WebSocket subscribers
+		// Broadcast new artist registration
 		try {
-			await broadcastArtistRegistration(eventId, savedArtist);
+			await broadcastArtistRegistration(
+				eventId,
+				savedArtist || completeArtistData
+			);
 			console.log(
-				`Broadcasted artist registration for ${
-					savedArtist.artistName || savedArtist.artist_name
-				}`
+				`Broadcasted new artist registration: ${artistData.artistName}`
 			);
 		} catch (error) {
 			console.error("Error broadcasting artist registration:", error);
@@ -235,7 +263,8 @@ export async function POST(
 		return NextResponse.json<ApiResponse<any>>(
 			{
 				success: true,
-				data: savedArtist,
+				data: savedArtist || completeArtistData,
+				message: "Artist registered successfully",
 				timestamp: new Date().toISOString(),
 			},
 			{ status: 201 }

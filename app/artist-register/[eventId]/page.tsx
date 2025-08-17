@@ -35,6 +35,7 @@ import {
 	Lightbulb,
 	FileText,
 	CheckCircle,
+	Plus,
 } from "lucide-react";
 import { StagePositionPreview } from "@/components/StagePositionPreview";
 import {
@@ -45,6 +46,9 @@ import {
 	DialogDescription,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { validateMediaFile } from "@/lib/media-validation";
+import { AudioPlayer } from "@/components/ui/audio-player";
+import { VideoPlayer, ImageViewer } from "@/components/ui/video-player";
 
 interface Event {
 	id: string;
@@ -137,13 +141,25 @@ function ArtistRegistrationForm() {
 			is_main_track: true,
 			tempo: "",
 			file_url: "",
+			file_path: "",
 		},
 	]);
 
 	const [galleryFiles, setGalleryFiles] = useState<
-		{ url: string; type: "image" | "video"; name: string }[]
+		{
+			url: string;
+			type: "image" | "video";
+			name: string;
+			file_path?: string;
+			size?: number;
+			uploadedAt?: string;
+			contentType?: string;
+		}[]
 	>([]);
 	const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+	const [registeredArtistId, setRegisteredArtistId] = useState<string | null>(
+		null
+	);
 
 	useEffect(() => {
 		if (eventId) {
@@ -264,6 +280,7 @@ function ArtistRegistrationForm() {
 				is_main_track: false,
 				tempo: "",
 				file_url: "",
+				file_path: "",
 			},
 		]);
 	};
@@ -294,11 +311,20 @@ function ArtistRegistrationForm() {
 		for (let i = 0; i < files.length; i++) {
 			const file = files[i];
 
-			// Check file size (10MB limit)
-			if (file.size > 10 * 1024 * 1024) {
+			// Validate file before upload
+			const validation = validateMediaFile(
+				{
+					name: file.name,
+					size: file.size,
+					type: file.type,
+				},
+				"audio"
+			);
+
+			if (!validation.isValid) {
 				toast({
-					title: "File too large",
-					description: `${file.name} exceeds 10MB limit`,
+					title: "Invalid file",
+					description: validation.error,
 					variant: "destructive",
 				});
 				continue;
@@ -330,17 +356,53 @@ function ArtistRegistrationForm() {
 				// Detect duration before upload
 				const duration = await detectDuration(file);
 
-				// For now, we'll just store the file info locally
-				// In a real app, you'd upload to cloud storage
-				const fileUrl = URL.createObjectURL(file);
+				// Upload to Google Cloud Storage
+				const uploadFormData = new FormData();
+				uploadFormData.append("file", file);
+				uploadFormData.append(
+					"eventId",
+					Array.isArray(eventId) ? eventId[0] : eventId
+				);
+				uploadFormData.append(
+					"artistId",
+					registeredArtistId ||
+						new URLSearchParams(window.location.search).get(
+							"artistId"
+						) ||
+						artistData.artist_name.replace(/[^a-zA-Z0-9]/g, "_") ||
+						"temp"
+				);
+				uploadFormData.append("fileType", "music");
+
+				const uploadResponse = await fetch("/api/gcs/upload", {
+					method: "POST",
+					body: uploadFormData,
+				});
+
+				if (!uploadResponse.ok) {
+					const errorData = await uploadResponse
+						.json()
+						.catch(() => ({}));
+					throw new Error(
+						errorData.error ||
+							`Music upload failed with status ${uploadResponse.status}`
+					);
+				}
+
+				const uploadResult = await uploadResponse.json();
+				console.log("Music upload result:", uploadResult);
 
 				setMusicTracks((prev) =>
 					prev.map((track, index) =>
 						index === trackIndex
 							? {
 									...track,
-									file_url: fileUrl,
+									file_url: uploadResult.url,
+									file_path: uploadResult.fileName,
 									duration: duration,
+									uploadedAt: new Date().toISOString(),
+									fileSize: file.size,
+									contentType: file.type,
 							  }
 							: track
 					)
@@ -360,7 +422,9 @@ function ArtistRegistrationForm() {
 				console.error("Upload error:", error);
 				toast({
 					title: "Upload failed",
-					description: `Failed to upload ${file.name}`,
+					description: `Failed to upload ${file.name}: ${
+						error instanceof Error ? error.message : "Unknown error"
+					}`,
 					variant: "destructive",
 				});
 			}
@@ -402,18 +466,68 @@ function ArtistRegistrationForm() {
 		for (let i = 0; i < files.length; i++) {
 			const file = files[i];
 
-			// Check file size (50MB limit for images/videos)
-			if (file.size > 50 * 1024 * 1024) {
+			// Validate file before upload
+			const mediaType = file.type.startsWith("image/")
+				? "image"
+				: "video";
+			const validation = validateMediaFile(
+				{
+					name: file.name,
+					size: file.size,
+					type: file.type,
+				},
+				mediaType
+			);
+
+			if (!validation.isValid) {
 				toast({
-					title: "File too large",
-					description: `${file.name} exceeds 50MB limit`,
+					title: "Invalid file",
+					description: validation.error,
 					variant: "destructive",
 				});
 				continue;
 			}
 
 			try {
-				const fileUrl = URL.createObjectURL(file);
+				// Upload to Google Cloud Storage
+				const formData = new FormData();
+				formData.append("file", file);
+				formData.append(
+					"eventId",
+					Array.isArray(eventId) ? eventId[0] : eventId
+				);
+				formData.append(
+					"artistId",
+					registeredArtistId ||
+						new URLSearchParams(window.location.search).get(
+							"artistId"
+						) ||
+						artistData.artist_name.replace(/[^a-zA-Z0-9]/g, "_") ||
+						"temp"
+				);
+				formData.append(
+					"fileType",
+					file.type.startsWith("image/") ? "images" : "videos"
+				);
+
+				const uploadResponse = await fetch("/api/gcs/upload", {
+					method: "POST",
+					body: formData,
+				});
+
+				if (!uploadResponse.ok) {
+					const errorData = await uploadResponse
+						.json()
+						.catch(() => ({}));
+					throw new Error(
+						errorData.error ||
+							`Gallery upload failed with status ${uploadResponse.status}`
+					);
+				}
+
+				const uploadResult = await uploadResponse.json();
+				console.log("Gallery upload result:", uploadResult);
+
 				const fileType = file.type.startsWith("image/")
 					? "image"
 					: "video";
@@ -421,9 +535,14 @@ function ArtistRegistrationForm() {
 				setGalleryFiles((prev) => [
 					...prev,
 					{
-						url: fileUrl,
+						url: uploadResult.url,
+						file_url: uploadResult.url,
+						file_path: uploadResult.fileName,
 						type: fileType,
 						name: file.name,
+						size: file.size,
+						uploadedAt: new Date().toISOString(),
+						contentType: file.type,
 					},
 				]);
 
@@ -435,7 +554,9 @@ function ArtistRegistrationForm() {
 				console.error("Upload error:", error);
 				toast({
 					title: "Upload failed",
-					description: `Failed to upload ${file.name}`,
+					description: `Failed to upload ${file.name}: ${
+						error instanceof Error ? error.message : "Unknown error"
+					}`,
 					variant: "destructive",
 				});
 			}
@@ -498,6 +619,8 @@ function ArtistRegistrationForm() {
 
 		try {
 			console.log("Submitting artist data:", artistData);
+			console.log("Music tracks:", validTracks);
+			console.log("Gallery files:", galleryFiles);
 
 			const urlParams = new URLSearchParams(window.location.search);
 			const artistId = urlParams.get("artistId");
@@ -597,13 +720,19 @@ function ArtistRegistrationForm() {
 
 			if (response.ok) {
 				const result = await response.json();
-				setShowSuccessDialog(true);
+				console.log("Registration result:", result);
 
-				// If this was a new registration, update the URL to include the artist ID
-				if (!existingProfile && result.artist?.id) {
-					const newUrl = `${window.location.pathname}?artistId=${result.artist.id}`;
+				// Store the artist ID for redirect
+				const artistId =
+					result.data?.id || result.artist?.id || result.id;
+				if (artistId) {
+					setRegisteredArtistId(artistId);
+					// Update the URL to include the artist ID
+					const newUrl = `${window.location.pathname}?artistId=${artistId}`;
 					window.history.replaceState({}, "", newUrl);
 				}
+
+				setShowSuccessDialog(true);
 			} else {
 				const errorData = await response.json();
 				throw new Error(
@@ -658,7 +787,7 @@ function ArtistRegistrationForm() {
 			<header className="border-b border-border">
 				<div className="container mx-auto px-4 py-4">
 					<div className="flex items-center gap-4">
-						<Button
+						{/* <Button
 							variant="outline"
 							size="sm"
 							onClick={() => router.back()}
@@ -666,7 +795,7 @@ function ArtistRegistrationForm() {
 						>
 							<ArrowLeft className="h-4 w-4" />
 							Back to Home
-						</Button>
+						</Button> */}
 						<div>
 							<h1 className="text-2xl font-bold text-foreground">
 								{existingProfile
@@ -1081,55 +1210,91 @@ function ArtistRegistrationForm() {
 																			Delete
 																		</Button>
 																	</div>
-																	<audio
-																		controls
-																		className="w-full"
-																	>
-																		<source
-																			src={
-																				track.file_url
-																			}
-																			type="audio/mpeg"
-																		/>
-																		Your
-																		browser
-																		does not
-																		support
-																		the
-																		audio
-																		element.
-																	</audio>
+																	<AudioPlayer
+																		track={{
+																			song_title:
+																				track.song_title ||
+																				"Unknown Track",
+																			duration:
+																				track.duration ||
+																				0,
+																			notes:
+																				track.notes ||
+																				"",
+																			is_main_track:
+																				track.is_main_track ||
+																				false,
+																			tempo:
+																				track.tempo ||
+																				"medium",
+																			file_url:
+																				track.file_url,
+																			file_path:
+																				track.file_path,
+																		}}
+																		onError={(
+																			error
+																		) => {
+																			console.error(
+																				"Audio playback error:",
+																				error
+																			);
+																			toast(
+																				{
+																					title: "Audio Error",
+																					description:
+																						"Failed to play audio file. Please check the file format.",
+																					variant:
+																						"destructive",
+																				}
+																			);
+																		}}
+																	/>
 																</div>
 															)}
 														</div>
 													)
 												)}
 											</div>
-											<div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
-												<div className="text-center space-y-2">
-													<Upload className="h-8 w-8 mx-auto text-muted-foreground" />
-													<Label
-														htmlFor="music-upload"
-														className="text-sm font-medium cursor-pointer"
-													>
-														Upload Music Files
-													</Label>
-													<Input
-														id="music-upload"
-														type="file"
-														multiple
-														accept="audio/*"
-														onChange={
-															handleMusicUpload
-														}
-														className="hidden"
-													/>
-													<p className="text-xs text-muted-foreground">
-														Drag and drop or click
-														to upload audio files
-														(Max 10MB each)
-													</p>
+											<div className="space-y-4">
+												<div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
+													<div className="text-center space-y-2">
+														<Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+														<Label
+															htmlFor="music-upload"
+															className="text-sm font-medium cursor-pointer"
+														>
+															Upload Music Files
+														</Label>
+														<Input
+															id="music-upload"
+															type="file"
+															multiple
+															accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma"
+															onChange={
+																handleMusicUpload
+															}
+															className="hidden"
+														/>
+														<p className="text-xs text-muted-foreground">
+															Drag and drop or
+															click to upload
+															audio files (Max
+															10MB each)
+														</p>
+													</div>
 												</div>
+												{/* <div className="flex justify-center">
+													<Button
+														type="button"
+														variant="outline"
+														onClick={addMusicTrack}
+														className="flex items-center gap-2"
+													>
+														<Plus className="h-4 w-4" />
+														Add Another Track
+													</Button>
+												</div> */}
 											</div>
 										</div>
 									</CardContent>
@@ -1927,28 +2092,78 @@ function ArtistRegistrationForm() {
 																key={index}
 																className="relative group"
 															>
-																<div className="aspect-square rounded-lg overflow-hidden bg-muted">
-																	{file.type ===
-																	"image" ? (
-																		<img
-																			src={
-																				file.url
-																			}
-																			alt={
-																				file.name
-																			}
-																			className="w-full h-full object-cover"
-																		/>
-																	) : (
-																		<video
-																			src={
-																				file.url
-																			}
-																			className="w-full h-full object-cover"
-																			controls
-																		/>
-																	)}
-																</div>
+																{file.type ===
+																"image" ? (
+																	<ImageViewer
+																		file={{
+																			name: file.name,
+																			type: "image",
+																			url: file.url,
+																			file_path:
+																				file.file_path,
+																			size:
+																				file.size ||
+																				0,
+																			uploadedAt:
+																				file.uploadedAt,
+																			contentType:
+																				file.contentType,
+																		}}
+																		onError={(
+																			error
+																		) => {
+																			console.error(
+																				"Image viewer error:",
+																				error
+																			);
+																			toast(
+																				{
+																					title: "Image Error",
+																					description:
+																						"Failed to load image file. Please check the file format.",
+																					variant:
+																						"destructive",
+																				}
+																			);
+																		}}
+																		className="aspect-square"
+																	/>
+																) : (
+																	<VideoPlayer
+																		file={{
+																			name: file.name,
+																			type: "video",
+																			url: file.url,
+																			file_path:
+																				file.file_path,
+																			size:
+																				file.size ||
+																				0,
+																			uploadedAt:
+																				file.uploadedAt,
+																			contentType:
+																				file.contentType,
+																		}}
+																		onError={(
+																			error
+																		) => {
+																			console.error(
+																				"Video player error:",
+																				error
+																			);
+																			toast(
+																				{
+																					title: "Video Error",
+																					description:
+																						"Failed to play video file. Please check the file format.",
+																					variant:
+																						"destructive",
+																				}
+																			);
+																		}}
+																		className="aspect-square"
+																	/>
+																)}
 																<Button
 																	type="button"
 																	variant="destructive"
@@ -2075,19 +2290,34 @@ function ArtistRegistrationForm() {
 							{artistData.artist_name} has been registered for{" "}
 							{event?.name}
 						</DialogDescription>
+						{registeredArtistId && (
+							<div className="text-xs text-muted-foreground mt-2 text-center">
+								Artist ID: {registeredArtistId}
+							</div>
+						)}
 					</DialogHeader>
 					<div className="mt-6">
 						<Button
 							onClick={() => {
-								const urlParams = new URLSearchParams(
-									window.location.search
+								// Use the stored artist ID first, then fallback to URL params
+								const artistId =
+									registeredArtistId ||
+									new URLSearchParams(
+										window.location.search
+									).get("artistId");
+								console.log(
+									"Redirecting to dashboard with artistId:",
+									artistId
 								);
-								const artistId = urlParams.get("artistId");
+
 								if (artistId) {
 									router.push(
 										`/artist-dashboard/${artistId}`
 									);
 								} else {
+									console.error(
+										"No artist ID found for redirect"
+									);
 									router.push("/artist-dashboard");
 								}
 							}}

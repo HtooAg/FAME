@@ -216,7 +216,9 @@ export default function EventManagementPage() {
 											const origin =
 												typeof window !== "undefined"
 													? window.location.origin
-													: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+													: process.env
+															.NEXT_PUBLIC_BASE_URL ||
+													  "http://localhost:3000";
 											return `${origin}/artist-register/${eventId}`;
 										})()}
 									</div>
@@ -357,7 +359,7 @@ export default function EventManagementPage() {
 							</Card>
 						</motion.div>
 
-						{/* Backstage Live Performance Board */}
+						{/* Live Performance Board */}
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
@@ -366,14 +368,14 @@ export default function EventManagementPage() {
 							<Card className="h-full hover:shadow-lg transition-all duration-300 hover:scale-105">
 								<CardHeader>
 									<div className="flex items-center">
-										<Settings className="h-6 w-6 text-red-600 mr-3" />
+										<ExternalLink className="h-6 w-6 text-red-600 mr-3" />
 										<CardTitle className="text-lg">
-											Backstage Live Performance Board
+											Live Performance Board
 										</CardTitle>
 									</div>
 									<CardDescription>
 										Real-time performance monitoring and
-										display
+										emergency management
 									</CardDescription>
 								</CardHeader>
 								<CardContent>

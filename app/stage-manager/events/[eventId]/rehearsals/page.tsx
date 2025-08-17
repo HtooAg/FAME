@@ -92,6 +92,23 @@ export default function RehearsalManagement() {
 		fetchData();
 	}, [eventId]);
 
+	const fetchRehearsals = async () => {
+		try {
+			const rehearsalsResponse = await fetch(
+				`/api/events/${eventId}/rehearsals`
+			);
+			if (rehearsalsResponse.ok) {
+				const rehearsalsData = await rehearsalsResponse.json();
+				// Handle the new API response format
+				const rehearsalsArray =
+					rehearsalsData.data || rehearsalsData.rehearsals || [];
+				setRehearsals(rehearsalsArray);
+			}
+		} catch (error) {
+			console.error("Error fetching rehearsals:", error);
+		}
+	};
+
 	const fetchData = async () => {
 		try {
 			// Fetch approved artists
@@ -106,14 +123,8 @@ export default function RehearsalManagement() {
 				setArtists(approvedArtists);
 			}
 
-			// Fetch rehearsals
-			const rehearsalsResponse = await fetch(
-				`/api/events/${eventId}/rehearsals`
-			);
-			if (rehearsalsResponse.ok) {
-				const rehearsalsData = await rehearsalsResponse.json();
-				setRehearsals(rehearsalsData.rehearsals || []);
-			}
+			// Fetch rehearsals using the dedicated function
+			await fetchRehearsals();
 		} catch (error) {
 			console.error("Error fetching data:", error);
 			toast({
@@ -162,16 +173,52 @@ export default function RehearsalManagement() {
 				updatedAt: new Date().toISOString(),
 			};
 
+			// Calculate end time based on start time and duration
+			const calculateEndTime = (
+				startTime: string,
+				durationMinutes: number
+			): string => {
+				const [hours, minutes] = startTime.split(":").map(Number);
+				const startDate = new Date();
+				startDate.setHours(hours, minutes, 0, 0);
+
+				const endDate = new Date(
+					startDate.getTime() + durationMinutes * 60000
+				);
+				const endHours = endDate.getHours().toString().padStart(2, "0");
+				const endMinutes = endDate
+					.getMinutes()
+					.toString()
+					.padStart(2, "0");
+
+				return `${endHours}:${endMinutes}`;
+			};
+
+			const endTime = calculateEndTime(
+				scheduleForm.scheduledTime,
+				scheduleForm.duration
+			);
+
 			const response = await fetch(`/api/events/${eventId}/rehearsals`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(newRehearsal),
+				body: JSON.stringify({
+					artistId: scheduleForm.artistId,
+					date: scheduleForm.scheduledDate,
+					startTime: scheduleForm.scheduledTime,
+					endTime: endTime,
+					notes: scheduleForm.notes,
+				}),
 			});
 
-			if (response.ok) {
-				setRehearsals([...rehearsals, newRehearsal]);
+			const data = await response.json();
+
+			if (data.success) {
+				// Immediately fetch updated rehearsals from GCS
+				await fetchRehearsals();
+
 				setShowScheduleDialog(false);
 				setScheduleForm({
 					artistId: "",
@@ -184,12 +231,42 @@ export default function RehearsalManagement() {
 					title: "Success",
 					description: "Rehearsal scheduled successfully",
 				});
+				// Auto-dismiss success message after 3 seconds
+				setTimeout(() => {
+					// Toast will auto-dismiss
+				}, 3000);
+			} else {
+				// Handle specific error codes
+				let errorMessage = "Failed to schedule rehearsal";
+
+				if (data.error?.code === "VALIDATION_ERROR") {
+					errorMessage =
+						data.error.message ||
+						"Please check your input and try again";
+				} else if (data.error?.code === "MISSING_PARAMETERS") {
+					errorMessage = "Required information is missing";
+				} else if (data.error?.code === "NOT_FOUND") {
+					errorMessage = "Artist not found";
+				} else if (data.error?.code === "INTERNAL_ERROR") {
+					errorMessage =
+						"Server error - please try again or contact support";
+				} else if (!response.ok) {
+					errorMessage =
+						"Network error - please check your connection and try again";
+				}
+
+				toast({
+					title: "Error",
+					description: errorMessage,
+					variant: "destructive",
+				});
 			}
 		} catch (error) {
 			console.error("Error scheduling rehearsal:", error);
 			toast({
 				title: "Error",
-				description: "Failed to schedule rehearsal",
+				description:
+					"Network error - please check your connection and try again",
 				variant: "destructive",
 			});
 		}

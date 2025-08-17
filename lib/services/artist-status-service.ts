@@ -8,6 +8,7 @@ import {
 } from "@/lib/schemas/artist";
 import { GCSService } from "@/lib/google-cloud-storage";
 import { broadcastArtistStatusChange } from "@/app/api/websocket/route";
+import { ServiceResult, ArtistStatusServiceResult } from "@/lib/types/services";
 
 export class ArtistStatusService {
 	/**
@@ -17,7 +18,7 @@ export class ArtistStatusService {
 		eventId: string,
 		artistId: string,
 		statusUpdate: UpdateArtistStatusRequest
-	): Promise<{ success: boolean; data?: ArtistProfile; error?: string }> {
+	): Promise<ArtistStatusServiceResult> {
 		try {
 			// Validate the status update request
 			const validatedUpdate =
@@ -232,7 +233,13 @@ export class ArtistStatusService {
 			if (newStatus && this.isValidTransition(currentStatus, newStatus)) {
 				await this.updateArtistStatus(eventId, artistId, {
 					artistId,
-					newStatus,
+					newStatus: newStatus as
+						| "pending"
+						| "approved"
+						| "active"
+						| "inactive"
+						| "rejected"
+						| "withdrawn",
 					reason: performanceDate
 						? `Auto-activated upon assignment to ${performanceDate}`
 						: "Auto-approved upon unassignment",
