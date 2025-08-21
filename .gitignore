@@ -25,7 +25,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-gcs_key.json
 
 # Google Cloud credentials
 gcs_key.json
