@@ -84,12 +84,12 @@ export interface ListQueryParams {
 
 // File upload request types
 export interface FileUploadRequest {
-	file: File;
+	file: any; // File-like object (works in both browser and Node.js)
 	metadata?: Record<string, any>;
 }
 
 export interface MultipleFileUploadRequest {
-	files: File[];
+	files: any[]; // Array of file-like objects
 	metadata?: Record<string, any>;
 }
 

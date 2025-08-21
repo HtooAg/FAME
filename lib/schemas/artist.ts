@@ -267,7 +267,7 @@ export const artistProfileSchema = baseArtistProfileSchema
 
 // File upload validation schema
 export const fileUploadSchema = z.object({
-	file: z.instanceof(File),
+	file: z.any(), // File-like object (works in both browser and Node.js)
 	type: z.enum(["audio", "video", "image"]),
 	maxSize: z.number().optional(),
 });

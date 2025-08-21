@@ -1,419 +1,100 @@
 {
   "pages": {
-    "/_not-found/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/app/_not-found/page-187bf8c1e2e370ad.js"
+    "/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/page.js"
     ],
     "/layout": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/css/b2211ccad173ae77.css",
-      "static/css/9f7a42084ad267dc.css",
-      "static/css/cfd25445b03bcf1c.css",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/5975-dca334918c556000.js",
-      "static/chunks/app/layout-978c6184ca23f79b.js"
-    ],
-    "/account-suspended/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/app/account-suspended/page-cca1fa26402e0df5.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
     ],
     "/account-pending/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/app/account-pending/page-532b1ceb1d9b612f.js"
-    ],
-    "/artist-dashboard/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/3887-c2f332813cc1b9ca.js",
-      "static/chunks/8722-b1f88d2c93ea79b5.js",
-      "static/chunks/app/artist-dashboard/page-3b7a7d62dca8c68f.js"
-    ],
-    "/artist-auth/[eventId]/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/app/artist-auth/[eventId]/page-de73a15091e7186c.js"
-    ],
-    "/artist-edit/[artistId]/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/6498-fba005679af1caa5.js",
-      "static/chunks/1552-1ba255b7862a7237.js",
-      "static/chunks/8209-ea41eca4f5f47d6f.js",
-      "static/chunks/8577-93bbccccee03a5dc.js",
-      "static/chunks/app/artist-edit/[artistId]/page-88f43e9df9866e86.js"
-    ],
-    "/artist-login/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/app/artist-login/page-89d74ac0c877f90b.js"
-    ],
-    "/artist-dashboard/[artistId]/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/3887-c2f332813cc1b9ca.js",
-      "static/chunks/8722-b1f88d2c93ea79b5.js",
-      "static/chunks/8209-ea41eca4f5f47d6f.js",
-      "static/chunks/app/artist-dashboard/[artistId]/page-bb6c43b7972bacf4.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/account-pending/page.js"
     ],
     "/login/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/464-33e217e226fc19c7.js",
-      "static/chunks/app/login/page-4f69fe4977c09f86.js"
-    ],
-    "/events/[eventId]/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/7323-2696609988c0c1cb.js",
-      "static/chunks/924-89bdf388e4cdc387.js",
-      "static/chunks/7392-baffc66220928362.js",
-      "static/chunks/app/events/[eventId]/page-095f584dc2ebd3c0.js"
-    ],
-    "/artist/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/2474-a36c1d56d6fb0831.js",
-      "static/chunks/app/artist/page-2a8962ccadcf2792.js"
-    ],
-    "/on-deck/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/app/on-deck/page-727774a54087891c.js"
-    ],
-    "/artist-register/[eventId]/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/6498-fba005679af1caa5.js",
-      "static/chunks/4116-e86c44bddf9bbab0.js",
-      "static/chunks/1552-1ba255b7862a7237.js",
-      "static/chunks/8209-ea41eca4f5f47d6f.js",
-      "static/chunks/8577-93bbccccee03a5dc.js",
-      "static/chunks/app/artist-register/[eventId]/page-ff1891d82956ce43.js"
-    ],
-    "/register/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/464-33e217e226fc19c7.js",
-      "static/chunks/app/register/page-f9398537d0181934.js"
-    ],
-    "/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/7323-2696609988c0c1cb.js",
-      "static/chunks/app/page-a8c32326f41140ca.js"
-    ],
-    "/setup-admin/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/app/setup-admin/page-23beeb9a6616a746.js"
-    ],
-    "/dj/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/app/dj/page-204b5aa95b390d6f.js"
-    ],
-    "/stage-manager/events/[eventId]/dj/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/6498-fba005679af1caa5.js",
-      "static/chunks/4116-e86c44bddf9bbab0.js",
-      "static/chunks/2546-bf3d7370e236d2b2.js",
-      "static/chunks/app/stage-manager/events/[eventId]/dj/page-633a8ab9053708d1.js"
-    ],
-    "/stage-manager/events/[eventId]/edit/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/7323-2696609988c0c1cb.js",
-      "static/chunks/924-89bdf388e4cdc387.js",
-      "static/chunks/9595-ddb20d6a81b5833c.js",
-      "static/chunks/8760-8f891e5a2fddb048.js",
-      "static/chunks/9859-fecc63e65e9eede1.js",
-      "static/chunks/app/stage-manager/events/[eventId]/edit/page-57993d73227e870d.js"
-    ],
-    "/stage-manager/events/[eventId]/mc/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/6498-fba005679af1caa5.js",
-      "static/chunks/2546-bf3d7370e236d2b2.js",
-      "static/chunks/app/stage-manager/events/[eventId]/mc/page-8226e6a29e07f7bb.js"
-    ],
-    "/stage-manager/events/[eventId]/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/7323-2696609988c0c1cb.js",
-      "static/chunks/924-89bdf388e4cdc387.js",
-      "static/chunks/7392-baffc66220928362.js",
-      "static/chunks/app/stage-manager/events/[eventId]/page-cd70c103ed8c9440.js"
-    ],
-    "/stage-manager/events/[eventId]/live-board/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/6498-fba005679af1caa5.js",
-      "static/chunks/2546-bf3d7370e236d2b2.js",
-      "static/chunks/app/stage-manager/events/[eventId]/live-board/page-7e541f63e29b41cf.js"
-    ],
-    "/stage-manager/events/[eventId]/show-order/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/602dbae6-a4ea0e47ae23f922.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/7323-2696609988c0c1cb.js",
-      "static/chunks/2699-ea3b356a51922894.js",
-      "static/chunks/398-03423896f4c4a2f4.js",
-      "static/chunks/8722-b1f88d2c93ea79b5.js",
-      "static/chunks/app/stage-manager/events/[eventId]/show-order/page-bf4ebe4ee62a680b.js"
-    ],
-    "/stage-manager/events/[eventId]/artists/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/6498-fba005679af1caa5.js",
-      "static/chunks/4116-e86c44bddf9bbab0.js",
-      "static/chunks/3349-a3d279b472e7ad7e.js",
-      "static/chunks/8722-b1f88d2c93ea79b5.js",
-      "static/chunks/8209-ea41eca4f5f47d6f.js",
-      "static/chunks/app/stage-manager/events/[eventId]/artists/page-07670ea15d7512c1.js"
-    ],
-    "/stage-manager/events/[eventId]/rehearsals/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/7323-2696609988c0c1cb.js",
-      "static/chunks/6498-fba005679af1caa5.js",
-      "static/chunks/4116-e86c44bddf9bbab0.js",
-      "static/chunks/1104-496f4579000a6bca.js",
-      "static/chunks/8722-b1f88d2c93ea79b5.js",
-      "static/chunks/app/stage-manager/events/[eventId]/rehearsals/page-ff81b69291931983.js"
-    ],
-    "/stage-manager/events/create/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/7323-2696609988c0c1cb.js",
-      "static/chunks/924-89bdf388e4cdc387.js",
-      "static/chunks/9595-ddb20d6a81b5833c.js",
-      "static/chunks/8760-8f891e5a2fddb048.js",
-      "static/chunks/9859-fecc63e65e9eede1.js",
-      "static/chunks/app/stage-manager/events/create/page-b3be5bc7d0eec6a6.js"
-    ],
-    "/stage-manager/events/[eventId]/rehearsal/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/6498-fba005679af1caa5.js",
-      "static/chunks/app/stage-manager/events/[eventId]/rehearsal/page-f66f062e1ab7cd0c.js"
-    ],
-    "/stage-manager/events/[eventId]/performance-order/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/602dbae6-a4ea0e47ae23f922.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/6498-fba005679af1caa5.js",
-      "static/chunks/4116-e86c44bddf9bbab0.js",
-      "static/chunks/2699-ea3b356a51922894.js",
-      "static/chunks/2546-bf3d7370e236d2b2.js",
-      "static/chunks/app/stage-manager/events/[eventId]/performance-order/page-d524366c126a6996.js"
-    ],
-    "/stage-manager/events/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/7323-2696609988c0c1cb.js",
-      "static/chunks/4116-e86c44bddf9bbab0.js",
-      "static/chunks/app/stage-manager/events/page-be99bdcdfa52e954.js"
-    ],
-    "/stage-manager/profile/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/app/stage-manager/profile/page-fb4ea99224ab802e.js"
-    ],
-    "/stage-manager/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/7323-2696609988c0c1cb.js",
-      "static/chunks/app/stage-manager/page-7b69854b1ab4fe59.js"
-    ],
-    "/stage-manager/events/[eventId]/show-dates/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/7648-682f9e117b0279ae.js",
-      "static/chunks/7323-2696609988c0c1cb.js",
-      "static/chunks/924-89bdf388e4cdc387.js",
-      "static/chunks/9595-ddb20d6a81b5833c.js",
-      "static/chunks/7392-baffc66220928362.js",
-      "static/chunks/app/stage-manager/events/[eventId]/show-dates/page-4090da81f105e4d5.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/login/page.js"
     ],
     "/super-admin/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/1730-b9facbdb6ae09efb.js",
-      "static/chunks/9629-52888ec399a0c31c.js",
-      "static/chunks/app/super-admin/page-71c74a148aaf90f0.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/super-admin/page.js"
     ],
-    "/super-admin/stage-managers/page": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/fd9d1056-240e2e5c79638f14.js",
-      "static/chunks/2117-0590c5f4df379de2.js",
-      "static/chunks/main-app-e7d1a654b539999c.js",
-      "static/chunks/8014-752bcd09f3242878.js",
-      "static/chunks/7514-fc9d8243997ed3d2.js",
-      "static/chunks/3145-141b397a8d4574fa.js",
-      "static/chunks/5345-20b2a0c24d55ea42.js",
-      "static/chunks/6498-fba005679af1caa5.js",
-      "static/chunks/4116-e86c44bddf9bbab0.js",
-      "static/chunks/1730-b9facbdb6ae09efb.js",
-      "static/chunks/app/super-admin/stage-managers/page-6d8d64a0cab05e00.js"
+    "/stage-manager/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/stage-manager/page.js"
+    ],
+    "/stage-manager/events/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/stage-manager/events/page.js"
+    ],
+    "/stage-manager/events/create/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/stage-manager/events/create/page.js"
+    ],
+    "/stage-manager/events/[eventId]/show-dates/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/stage-manager/events/[eventId]/show-dates/page.js"
+    ],
+    "/stage-manager/events/[eventId]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/stage-manager/events/[eventId]/page.js"
+    ],
+    "/artist-register/[eventId]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/artist-register/[eventId]/page.js"
+    ],
+    "/stage-manager/events/[eventId]/artists/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/stage-manager/events/[eventId]/artists/page.js"
+    ],
+    "/stage-manager/events/[eventId]/rehearsal/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/stage-manager/events/[eventId]/rehearsal/page.js"
+    ],
+    "/stage-manager/events/[eventId]/performance-order/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/stage-manager/events/[eventId]/performance-order/page.js"
+    ],
+    "/stage-manager/events/[eventId]/dj/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/stage-manager/events/[eventId]/dj/page.js"
+    ],
+    "/stage-manager/events/[eventId]/mc/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/stage-manager/events/[eventId]/mc/page.js"
+    ],
+    "/stage-manager/events/[eventId]/live-board/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/stage-manager/events/[eventId]/live-board/page.js"
+    ],
+    "/artist-dashboard/[artistId]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/artist-dashboard/[artistId]/page.js"
+    ],
+    "/artist-edit/[artistId]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/artist-edit/[artistId]/page.js"
     ]
   }
 }

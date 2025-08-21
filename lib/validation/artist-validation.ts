@@ -713,13 +713,13 @@ export class ArtistValidator {
 	 * Enhanced file upload validation with security checks
 	 */
 	static validateFileUploadEnhanced(
-		file: File,
+		file: any,
 		type: "audio" | "video" | "image"
 	): ValidationResult {
 		const errors: string[] = [];
 
-		// Basic file validation
-		if (!file || !(file instanceof File)) {
+		// Basic file validation - check for file-like properties instead of instanceof File
+		if (!file || !this.isFileObject(file)) {
 			errors.push("Invalid file object");
 			return { isValid: false, errors };
 		}
@@ -923,7 +923,7 @@ export class ArtistValidator {
 	 * Validate file upload (legacy method for backward compatibility)
 	 */
 	static validateFileUpload(
-		file: File,
+		file: any,
 		type: "audio" | "video" | "image"
 	): ValidationResult {
 		// Use the enhanced validation method
@@ -1522,5 +1522,25 @@ export class ArtistValidator {
 			missingFields,
 			recommendations,
 		};
+	}
+
+	/**
+	 * Check if object is file-like (works in both browser and Node.js environments)
+	 */
+	private static isFileObject(obj: any): boolean {
+		if (!obj) return false;
+
+		// In browser environment, check instanceof File
+		if (typeof File !== "undefined" && obj instanceof File) {
+			return true;
+		}
+
+		// In Node.js environment, check for file-like properties
+		return (
+			typeof obj === "object" &&
+			typeof obj.name === "string" &&
+			typeof obj.type === "string" &&
+			(typeof obj.size === "number" || obj.size === undefined)
+		);
 	}
 }

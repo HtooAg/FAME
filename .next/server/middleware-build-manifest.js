@@ -1,29 +1,16 @@
 self.__BUILD_MANIFEST = {
   "polyfillFiles": [
-    "static/chunks/polyfills-42372ed130431b0a.js"
+    "static/chunks/polyfills.js"
   ],
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [],
   "rootMainFiles": [
-    "static/chunks/webpack-4ca74322e05f2877.js",
-    "static/chunks/fd9d1056-240e2e5c79638f14.js",
-    "static/chunks/2117-0590c5f4df379de2.js",
-    "static/chunks/main-app-e7d1a654b539999c.js"
+    "static/chunks/webpack.js",
+    "static/chunks/main-app.js"
   ],
   "pages": {
-    "/_app": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/framework-a63c59c368572696.js",
-      "static/chunks/main-26460a48a986dc82.js",
-      "static/chunks/pages/_app-78ddf957b9a9b996.js"
-    ],
-    "/_error": [
-      "static/chunks/webpack-4ca74322e05f2877.js",
-      "static/chunks/framework-a63c59c368572696.js",
-      "static/chunks/main-26460a48a986dc82.js",
-      "static/chunks/pages/_error-7ce03bcf1df914ce.js"
-    ]
+    "/_app": []
   },
   "ampFirstPages": []
 };

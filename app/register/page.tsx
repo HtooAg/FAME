@@ -44,23 +44,23 @@ export default function RegisterPage() {
 			return;
 		}
 
-		if (formData.password.length < 6) {
-			setError("Password must be at least 6 characters");
+		if (formData.password.length < 8) {
+			setError("Password must be at least 8 characters long");
 			setLoading(false);
 			return;
 		}
 
-		const ok = await register({
+		const result = await register({
 			name: formData.name,
 			email: formData.email,
 			password: formData.password,
 			eventName: formData.eventName,
 		});
 
-		if (ok) {
+		if (result.success) {
 			setSuccess(true);
 		} else {
-			setError("Registration failed. Please try again.");
+			setError(result.error || "Registration failed. Please try again.");
 		}
 		setLoading(false);
 	};
@@ -205,7 +205,7 @@ export default function RegisterPage() {
 										)
 									}
 									required
-									placeholder="Create a password (min 6 characters)"
+									placeholder="Create a password (min 8 characters)"
 									className="pr-10"
 								/>
 								<button

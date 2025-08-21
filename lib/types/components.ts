@@ -115,7 +115,7 @@ export interface FileUploadProps extends BaseComponentProps {
 	accept?: string;
 	multiple?: boolean;
 	maxSize?: number;
-	onUpload: (files: File[]) => void | Promise<void>;
+	onUpload: (files: any[]) => void | Promise<void>; // File-like objects
 	loading?: boolean;
 	error?: string;
 }

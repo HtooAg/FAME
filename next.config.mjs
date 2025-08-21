@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+	output: "standalone",
 	eslint: {
 		ignoreDuringBuilds: true,
 	},
@@ -9,7 +10,6 @@ const nextConfig = {
 	images: {
 		unoptimized: true,
 	},
-	swcMinify: false,
 	env: {
 		// Skip WebSocket initialization during build
 		NEXT_BUILD_SKIP_WEBSOCKET:

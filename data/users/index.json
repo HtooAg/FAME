@@ -1,0 +1,63 @@
+[
+  {
+    "id": 2,
+    "name": "Chit Pyae Sone",
+    "email": "chitpyaesone239@gmail.com",
+    "password": "$2b$10$GUe.5pcNDvM4WnFI2EgRC.7pJrSZoFbWcPfStXF/lrly9EAkmc3Tu",
+    "role": "stage_manager",
+    "accountStatus": "active",
+    "subscriptionStatus": "trial",
+    "subscriptionEndDate": "2025-12-31",
+    "isActive": true,
+    "eventName": "",
+    "registeredAt": "2025-08-12T18:36:26.772Z",
+    "metadata": {
+      "ipAddress": "unknown",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+      "createdAt": "2025-08-12T18:36:26.772Z",
+      "lastLogin": "2025-08-17T08:09:56.533Z",
+      "storageSource": "local"
+    },
+    "eventId": "",
+    "approvedAt": "2025-08-12T18:37:23.677Z",
+    "updatedAt": "2025-08-17T08:09:56.535Z"
+  },
+  {
+    "id": "4",
+    "name": "Kyaw Kyaw",
+    "email": "kyawkyaw@gmail.com",
+    "password": "$2b$12$qa1qmOTzWMlI6fkKeA2lnOvp3aBYH/GUzqX3EuVcqKTgNs8n4kpLS",
+    "role": "stage_manager",
+    "accountStatus": "pending",
+    "subscriptionStatus": "trial",
+    "subscriptionEndDate": "",
+    "createdAt": "2025-08-17T08:18:53.072Z",
+    "updatedAt": "2025-08-17T08:19:20.300Z",
+    "metadata": {
+      "ipAddress": "unknown",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+      "storageSource": "local",
+      "lastLogin": "2025-08-17T08:19:20.299Z"
+    }
+  },
+  {
+    "id": "super-admin-1755021216039",
+    "name": "Eric Lalta",
+    "email": "ericlaltaevents@gmail.com",
+    "password": "$2b$10$VRZPcUZbMmDvZ11ogQp9dOW79.YGt/ZMM/roN4dRzX6ugv.6NUvdC",
+    "role": "super_admin",
+    "accountStatus": "active",
+    "isActive": true,
+    "createdAt": "2025-08-12T17:53:36.039Z",
+    "lastLogin": null,
+    "metadata": {
+      "createdBy": "api",
+      "createdAt": "2025-08-12T17:53:36.039Z",
+      "ipAddress": "unknown",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+      "lastLogin": "2025-08-17T08:33:50.752Z",
+      "storageSource": "local"
+    },
+    "updatedAt": "2025-08-17T08:33:50.753Z"
+  }
+]

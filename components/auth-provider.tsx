@@ -18,7 +18,7 @@ interface AuthContextType {
 	user: User | null;
 	login: (email: string, password: string) => Promise<boolean>;
 	logout: () => void;
-	register: (userData: any) => Promise<boolean>;
+	register: (userData: any) => Promise<{ success: boolean; error?: string }>;
 	loading: boolean;
 }
 
@@ -116,9 +116,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(userData),
 			});
-			return res.ok;
+
+			if (res.ok) {
+				return { success: true };
+			} else {
+				// Try to get the error message from the response
+				try {
+					const errorData = await res.json();
+					return {
+						success: false,
+						error:
+							errorData.message ||
+							"Registration failed. Please try again.",
+					};
+				} catch {
+					return {
+						success: false,
+						error: "Registration failed. Please try again.",
+					};
+				}
+			}
 		} catch {
-			return false;
+			return {
+				success: false,
+				error: "Network error. Please check your connection and try again.",
+			};
 		}
 	};
 

@@ -234,12 +234,12 @@ export class ValidationMiddleware {
 		const data: any = {};
 
 		for (const [key, value] of formData.entries()) {
-			if (value instanceof File) {
+			if (this.isFileObject(value)) {
 				data[key] = value;
 			} else {
 				// Try to parse JSON values
 				try {
-					data[key] = JSON.parse(value);
+					data[key] = JSON.parse(value as string);
 				} catch {
 					data[key] = value;
 				}
@@ -255,7 +255,8 @@ export class ValidationMiddleware {
 	private static validateFileUploadRequest(data: any): ValidationResult {
 		const errors: string[] = [];
 
-		if (!data.file || !(data.file instanceof File)) {
+		// Check if file exists and has file-like properties (works in both browser and Node.js)
+		if (!data.file || !this.isFileObject(data.file)) {
 			errors.push("File is required");
 		}
 
@@ -269,6 +270,26 @@ export class ValidationMiddleware {
 
 		// Use existing file validation
 		return ArtistValidator.validateFileUploadEnhanced(data.file, data.type);
+	}
+
+	/**
+	 * Check if object is file-like (works in both browser and Node.js environments)
+	 */
+	private static isFileObject(obj: any): boolean {
+		if (!obj) return false;
+
+		// In browser environment, check instanceof File
+		if (typeof File !== "undefined" && obj instanceof File) {
+			return true;
+		}
+
+		// In Node.js environment, check for file-like properties
+		return (
+			typeof obj === "object" &&
+			typeof obj.name === "string" &&
+			typeof obj.type === "string" &&
+			(typeof obj.size === "number" || obj.size === undefined)
+		);
 	}
 
 	/**

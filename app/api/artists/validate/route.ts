@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ArtistValidator } from "@/lib/validation/artist-validation";
-import { ValidationMiddleware } from "@/lib/validation/validation-middleware";
-import { DataIntegrityChecker } from "@/lib/validation/data-integrity";
-import { InputSanitizer } from "@/lib/validation/input-sanitizer";
+import {
+	ServerSafeValidationMiddleware,
+	ServerSafeArtistValidator,
+	ServerSafeDataIntegrityChecker,
+} from "@/lib/validation/server-safe-validation";
 
 /**
  * POST /api/artists/validate
@@ -11,12 +12,13 @@ import { InputSanitizer } from "@/lib/validation/input-sanitizer";
 export async function POST(request: NextRequest) {
 	try {
 		// Apply validation middleware
-		const validation = await ValidationMiddleware.validateRequest(
+		const validation = await ServerSafeValidationMiddleware.validateRequest(
 			request,
 			"artist-create",
 			{
 				allowedMethods: ["POST"],
-				rateLimitKey: ValidationMiddleware.getClientIP(request),
+				rateLimitKey:
+					ServerSafeValidationMiddleware.getClientIP(request),
 				maxRequestSize: 5 * 1024 * 1024, // 5MB
 			}
 		);
@@ -24,7 +26,7 @@ export async function POST(request: NextRequest) {
 		if (!validation.isValid) {
 			return (
 				validation.response ||
-				ValidationMiddleware.createErrorResponse(
+				ServerSafeValidationMiddleware.createErrorResponse(
 					"Validation failed",
 					400,
 					validation.errors
@@ -36,10 +38,10 @@ export async function POST(request: NextRequest) {
 
 		// Perform comprehensive validation
 		const artistValidation =
-			ArtistValidator.validateArtistDataWithSchema(artistData);
+			ServerSafeArtistValidator.validateArtistDataWithSchema(artistData);
 
 		if (!artistValidation.isValid) {
-			return ValidationMiddleware.createErrorResponse(
+			return ServerSafeValidationMiddleware.createErrorResponse(
 				"Artist data validation failed",
 				400,
 				artistValidation.errors
@@ -47,14 +49,16 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Perform data integrity check
-		const integrityCheck = DataIntegrityChecker.checkArtistProfileIntegrity(
-			artistValidation.sanitizedData
-		);
+		const integrityCheck =
+			ServerSafeDataIntegrityChecker.checkArtistProfileIntegrity(
+				artistValidation.sanitizedData
+			);
 
 		// Check profile completeness
-		const completenessCheck = ArtistValidator.checkProfileCompleteness(
-			artistValidation.sanitizedData
-		);
+		const completenessCheck =
+			ServerSafeArtistValidator.checkProfileCompleteness(
+				artistValidation.sanitizedData
+			);
 
 		// Prepare response
 		const response = {
@@ -76,13 +80,13 @@ export async function POST(request: NextRequest) {
 			sanitizedData: artistValidation.sanitizedData,
 		};
 
-		return ValidationMiddleware.createSuccessResponse(
+		return ServerSafeValidationMiddleware.createSuccessResponse(
 			response,
 			"Artist data validation completed"
 		);
 	} catch (error) {
 		console.error("Artist validation error:", error);
-		return ValidationMiddleware.createErrorResponse(
+		return ServerSafeValidationMiddleware.createErrorResponse(
 			"Internal validation error",
 			500
 		);
@@ -95,12 +99,13 @@ export async function POST(request: NextRequest) {
  */
 export async function PUT(request: NextRequest) {
 	try {
-		const validation = await ValidationMiddleware.validateRequest(
+		const validation = await ServerSafeValidationMiddleware.validateRequest(
 			request,
 			"artist-create",
 			{
 				allowedMethods: ["PUT"],
-				rateLimitKey: ValidationMiddleware.getClientIP(request),
+				rateLimitKey:
+					ServerSafeValidationMiddleware.getClientIP(request),
 				maxRequestSize: 25 * 1024 * 1024, // 25MB for batch
 			}
 		);
@@ -108,7 +113,7 @@ export async function PUT(request: NextRequest) {
 		if (!validation.isValid) {
 			return (
 				validation.response ||
-				ValidationMiddleware.createErrorResponse(
+				ServerSafeValidationMiddleware.createErrorResponse(
 					"Validation failed",
 					400,
 					validation.errors
@@ -119,14 +124,14 @@ export async function PUT(request: NextRequest) {
 		const { artists } = validation.data;
 
 		if (!Array.isArray(artists)) {
-			return ValidationMiddleware.createErrorResponse(
+			return ServerSafeValidationMiddleware.createErrorResponse(
 				"Artists data must be an array",
 				400
 			);
 		}
 
 		if (artists.length > 50) {
-			return ValidationMiddleware.createErrorResponse(
+			return ServerSafeValidationMiddleware.createErrorResponse(
 				"Batch size cannot exceed 50 artists",
 				400
 			);
@@ -134,12 +139,13 @@ export async function PUT(request: NextRequest) {
 
 		// Validate each artist
 		const batchValidation =
-			ArtistValidator.validateBatchArtistData(artists);
+			ServerSafeArtistValidator.validateBatchArtistData(artists);
 
 		// Check cross-profile integrity
-		const crossIntegrity = DataIntegrityChecker.checkBatchIntegrity(
-			batchValidation.validArtists
-		);
+		const crossIntegrity =
+			ServerSafeDataIntegrityChecker.checkBatchIntegrity(
+				batchValidation.validArtists
+			);
 
 		// Prepare response
 		const response = {
@@ -162,13 +168,13 @@ export async function PUT(request: NextRequest) {
 			},
 		};
 
-		return ValidationMiddleware.createSuccessResponse(
+		return ServerSafeValidationMiddleware.createSuccessResponse(
 			response,
 			"Batch artist validation completed"
 		);
 	} catch (error) {
 		console.error("Batch validation error:", error);
-		return ValidationMiddleware.createErrorResponse(
+		return ServerSafeValidationMiddleware.createErrorResponse(
 			"Internal validation error",
 			500
 		);

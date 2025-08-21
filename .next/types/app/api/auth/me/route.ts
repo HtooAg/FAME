@@ -1,4 +1,4 @@
-// File: C:\Users\ASUS\Downloads\fame-event-manager\app\api\auth\me\route.ts
+// File: C:\Users\ASUS\OneDrive\Desktop\FAME\app\api\auth\me\route.ts
 import * as entry from '../../../../../../app/api/auth/me/route.js'
 import type { NextRequest } from 'next/server.js'
 

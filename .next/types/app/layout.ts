@@ -1,4 +1,4 @@
-// File: C:\Users\ASUS\Downloads\fame-event-manager\app\layout.tsx
+// File: C:\Users\ASUS\OneDrive\Desktop\FAME\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
