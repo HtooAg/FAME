@@ -163,7 +163,7 @@ export class StorageManager {
 	}
 
 	/**
-	 * Save user data with fallback mechanism
+	 * Save user data - GCS ONLY
 	 */
 	async saveUser(userData: UserData): Promise<void> {
 		const userWithSource = {
@@ -171,277 +171,164 @@ export class StorageManager {
 			updatedAt: new Date().toISOString(),
 			metadata: {
 				...userData.metadata,
-				storageSource: "local" as "gcs" | "local" | "synced", // Allow all storage source types
+				storageSource: "gcs" as "gcs" | "local" | "synced",
 			},
 		};
 
-		let gcsSuccess = false;
-		let localSuccess = false;
-		let lastError: Error | null = null;
-
-		// Try GCS first if available
-		if (await this.isGCSAvailable()) {
-			try {
-				// For registrations, use the registration path
-				if (userData.accountStatus === "pending") {
-					const registrationPath = `registrations/stage-managers/${userData.name}-${userData.id}.json`;
-					await GCSService.saveJSON(userWithSource, registrationPath);
-				} else {
-					// For approved users, save to users index
-					const users = await this.getUsers();
-					const existingIndex = users.findIndex(
-						(u) => u.id === userData.id
-					);
-
-					if (existingIndex >= 0) {
-						users[existingIndex] = {
-							...userWithSource,
-							metadata: {
-								...userWithSource.metadata,
-								storageSource: "gcs" as
-									| "gcs"
-									| "local"
-									| "synced",
-							},
-						};
-					} else {
-						users.push({
-							...userWithSource,
-							metadata: {
-								...userWithSource.metadata,
-								storageSource: "gcs" as
-									| "gcs"
-									| "local"
-									| "synced",
-							},
-						});
-					}
-
-					await GCSService.saveJSON(users, "users/index.json");
-				}
-
-				gcsSuccess = true;
-				console.log(`User ${userData.email} saved to GCS`);
-			} catch (error) {
-				lastError =
-					error instanceof Error
-						? error
-						: new Error("GCS save failed");
-				console.error(
-					`Failed to save user to GCS: ${lastError.message}`
-				);
-			}
-		}
-
-		// Always try local storage as backup or primary
-		if (this.config.local.enabled) {
-			try {
-				if (userData.accountStatus === "pending") {
-					// Save registration to local storage
-					const registrationPath = `registrations/stage-managers/${userData.name}-${userData.id}.json`;
-					await this.localStorage.saveJSON(
-						registrationPath,
-						userWithSource
-					);
-				} else {
-					// Save to local users index
-					const users = await this.getUsersFromLocal();
-					const existingIndex = users.findIndex(
-						(u) => u.id === userData.id
-					);
-
-					if (existingIndex >= 0) {
-						users[existingIndex] = userWithSource;
-					} else {
-						users.push(userWithSource);
-					}
-
-					await this.localStorage.saveJSON("users/index.json", users);
-				}
-
-				localSuccess = true;
-				console.log(`User ${userData.email} saved to local storage`);
-			} catch (error) {
-				lastError =
-					error instanceof Error
-						? error
-						: new Error("Local save failed");
-				console.error(
-					`Failed to save user to local storage: ${lastError.message}`
-				);
-			}
-		}
-
-		// If both failed, throw error
-		if (!gcsSuccess && !localSuccess) {
+		// Check if GCS is available - REQUIRED
+		if (!(await this.isGCSAvailable())) {
 			throw new StorageError(
-				`Failed to save user data: ${
-					lastError?.message || "All storage methods failed"
-				}`,
+				"Google Cloud Storage is not available. Cannot save user data.",
 				"manager"
 			);
 		}
 
-		// Update storage source based on what succeeded
-		if (gcsSuccess && localSuccess) {
-			userWithSource.metadata.storageSource = "synced";
-		} else if (gcsSuccess) {
-			userWithSource.metadata.storageSource = "gcs";
-		} else {
-			userWithSource.metadata.storageSource = "local";
+		try {
+			// For registrations, use the registration path
+			if (userData.accountStatus === "pending") {
+				const registrationPath = `registrations/stage-managers/${userData.name}-${userData.id}.json`;
+				await GCSService.saveJSON(userWithSource, registrationPath);
+			} else {
+				// For approved users, save to users index
+				const users = await this.getUsers();
+				const existingIndex = users.findIndex(
+					(u) => u.id === userData.id
+				);
+
+				if (existingIndex >= 0) {
+					users[existingIndex] = userWithSource;
+				} else {
+					users.push(userWithSource);
+				}
+
+				await GCSService.saveJSON(users, "users/index.json");
+			}
+
+			console.log(`User ${userData.email} saved to GCS`);
+		} catch (error) {
+			const errorMessage =
+				error instanceof Error ? error.message : "GCS save failed";
+			console.error(`Failed to save user to GCS: ${errorMessage}`);
+			throw new StorageError(
+				`Failed to save user data to Google Cloud Storage: ${errorMessage}`,
+				"manager"
+			);
 		}
 	}
 
 	/**
-	 * Get user by email with fallback mechanism
+	 * Get user by email - GCS ONLY
 	 */
 	async getUser(email: string): Promise<UserData | null> {
-		let user: UserData | null = null;
-
-		// Try GCS first if available
-		if (await this.isGCSAvailable()) {
-			try {
-				user = await this.getUserFromGCS(email);
-				if (user) {
-					console.log(`User ${email} found in GCS`);
-					return user;
-				}
-			} catch (error) {
-				console.error(
-					`Failed to get user from GCS: ${
-						error instanceof Error ? error.message : "Unknown error"
-					}`
-				);
-			}
+		// Check if GCS is available - REQUIRED
+		if (!(await this.isGCSAvailable())) {
+			throw new StorageError(
+				"Google Cloud Storage is not available. Cannot retrieve user data.",
+				"manager"
+			);
 		}
 
-		// Fallback to local storage
-		if (this.config.local.enabled) {
-			try {
-				user = await this.getUserFromLocal(email);
-				if (user) {
-					console.log(`User ${email} found in local storage`);
-					return user;
-				}
-			} catch (error) {
-				console.error(
-					`Failed to get user from local storage: ${
-						error instanceof Error ? error.message : "Unknown error"
-					}`
-				);
+		try {
+			const user = await this.getUserFromGCS(email);
+			if (user) {
+				console.log(`User ${email} found in GCS`);
+				return user;
 			}
+		} catch (error) {
+			const errorMessage =
+				error instanceof Error ? error.message : "Unknown error";
+			console.error(`Failed to get user from GCS: ${errorMessage}`);
+			throw new StorageError(
+				`Failed to retrieve user from Google Cloud Storage: ${errorMessage}`,
+				"manager"
+			);
 		}
 
-		console.log(`User ${email} not found in any storage`);
+		console.log(`User ${email} not found in GCS`);
 		return null;
 	}
 
 	/**
-	 * Get user by ID with fallback mechanism
+	 * Get user by ID - GCS ONLY
 	 */
 	async getUserById(id: string): Promise<UserData | null> {
-		let user: UserData | null = null;
-
-		// Try GCS first if available
-		if (await this.isGCSAvailable()) {
-			try {
-				user = await this.getUserByIdFromGCS(id);
-				if (user) {
-					console.log(`User ID ${id} found in GCS`);
-					return user;
-				}
-			} catch (error) {
-				console.error(
-					`Failed to get user by ID from GCS: ${
-						error instanceof Error ? error.message : "Unknown error"
-					}`
-				);
-			}
+		// Check if GCS is available - REQUIRED
+		if (!(await this.isGCSAvailable())) {
+			throw new StorageError(
+				"Google Cloud Storage is not available. Cannot retrieve user data.",
+				"manager"
+			);
 		}
 
-		// Fallback to local storage
-		if (this.config.local.enabled) {
-			try {
-				user = await this.getUserByIdFromLocal(id);
-				if (user) {
-					console.log(`User ID ${id} found in local storage`);
-					return user;
-				}
-			} catch (error) {
-				console.error(
-					`Failed to get user by ID from local storage: ${
-						error instanceof Error ? error.message : "Unknown error"
-					}`
-				);
+		try {
+			const user = await this.getUserByIdFromGCS(id);
+			if (user) {
+				console.log(`User ID ${id} found in GCS`);
+				return user;
 			}
+		} catch (error) {
+			const errorMessage =
+				error instanceof Error ? error.message : "Unknown error";
+			console.error(`Failed to get user by ID from GCS: ${errorMessage}`);
+			throw new StorageError(
+				`Failed to retrieve user from Google Cloud Storage: ${errorMessage}`,
+				"manager"
+			);
 		}
 
-		console.log(`User ID ${id} not found in any storage`);
+		console.log(`User ID ${id} not found in GCS`);
 		return null;
 	}
 
 	/**
-	 * Get all users with fallback mechanism
+	 * Get all users - GCS ONLY
 	 */
 	async getUsers(): Promise<UserData[]> {
-		let users: UserData[] = [];
-
-		// Try GCS first if available
-		if (await this.isGCSAvailable()) {
-			try {
-				users = await this.getUsersFromGCS();
-				if (users.length > 0) {
-					console.log(`Found ${users.length} users in GCS`);
-					return users;
-				}
-			} catch (error) {
-				console.error(
-					`Failed to get users from GCS: ${
-						error instanceof Error ? error.message : "Unknown error"
-					}`
-				);
-			}
+		// Check if GCS is available - REQUIRED
+		if (!(await this.isGCSAvailable())) {
+			throw new StorageError(
+				"Google Cloud Storage is not available. Cannot retrieve users.",
+				"manager"
+			);
 		}
 
-		// Fallback to local storage
-		if (this.config.local.enabled) {
-			try {
-				users = await this.getUsersFromLocal();
-				console.log(`Found ${users.length} users in local storage`);
-				return users;
-			} catch (error) {
-				console.error(
-					`Failed to get users from local storage: ${
-						error instanceof Error ? error.message : "Unknown error"
-					}`
-				);
-			}
+		try {
+			const users = await this.getUsersFromGCS();
+			console.log(`Found ${users.length} users in GCS`);
+			return users;
+		} catch (error) {
+			const errorMessage =
+				error instanceof Error ? error.message : "Unknown error";
+			console.error(`Failed to get users from GCS: ${errorMessage}`);
+			throw new StorageError(
+				`Failed to retrieve users from Google Cloud Storage: ${errorMessage}`,
+				"manager"
+			);
 		}
-
-		return [];
 	}
 
 	/**
-	 * Get next ID for new users
+	 * Get next ID for new users - GCS ONLY
 	 */
 	async getNextId(): Promise<number> {
+		// Check if GCS is available - REQUIRED
+		if (!(await this.isGCSAvailable())) {
+			throw new StorageError(
+				"Google Cloud Storage is not available. Cannot generate user ID.",
+				"manager"
+			);
+		}
+
 		const counterPath = "counters/stage-manager.json";
 		let counter = { currentId: 0 };
 
-		// Try to get counter from storage
+		// Try to get counter from GCS
 		try {
-			if (await this.isGCSAvailable()) {
-				const gcsCounter = await GCSService.readJSON(counterPath);
-				if (gcsCounter) counter = gcsCounter;
-			} else if (this.config.local.enabled) {
-				const localCounter = await this.localStorage.readJSON(
-					counterPath
-				);
-				if (localCounter) counter = localCounter;
-			}
+			const gcsCounter = await GCSService.readJSON(counterPath);
+			if (gcsCounter) counter = gcsCounter;
 		} catch (error) {
 			console.error(
-				`Failed to read counter: ${
+				`Failed to read counter from GCS: ${
 					error instanceof Error ? error.message : "Unknown error"
 				}`
 			);
@@ -450,19 +337,16 @@ export class StorageManager {
 		const nextId = counter.currentId + 1;
 		const newCounter = { currentId: nextId };
 
-		// Save updated counter
+		// Save updated counter to GCS
 		try {
-			if (await this.isGCSAvailable()) {
-				await GCSService.saveJSON(newCounter, counterPath);
-			}
-			if (this.config.local.enabled) {
-				await this.localStorage.saveJSON(counterPath, newCounter);
-			}
+			await GCSService.saveJSON(newCounter, counterPath);
 		} catch (error) {
-			console.error(
-				`Failed to save counter: ${
-					error instanceof Error ? error.message : "Unknown error"
-				}`
+			const errorMessage =
+				error instanceof Error ? error.message : "Unknown error";
+			console.error(`Failed to save counter to GCS: ${errorMessage}`);
+			throw new StorageError(
+				`Failed to save counter to Google Cloud Storage: ${errorMessage}`,
+				"manager"
 			);
 		}
 

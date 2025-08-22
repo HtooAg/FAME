@@ -10,6 +10,8 @@ const nextConfig = {
 	images: {
 		unoptimized: true,
 	},
+	// Completely disable minification to avoid Unicode issues
+	swcMinify: false,
 	env: {
 		// Skip WebSocket initialization during build
 		NEXT_BUILD_SKIP_WEBSOCKET:
@@ -25,9 +27,10 @@ const nextConfig = {
 	// Disable source maps in production builds for faster builds
 	productionBrowserSourceMaps: false,
 	webpack: (config, { dev, isServer, webpack }) => {
-		// Production optimizations
-		if (!dev && !isServer) {
+		// Disable minification completely to avoid Unicode issues
+		if (!dev) {
 			config.optimization.minimize = false;
+			config.optimization.minimizer = [];
 		}
 
 		// Exclude problematic packages from client bundle
